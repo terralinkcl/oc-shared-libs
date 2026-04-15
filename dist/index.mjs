@@ -1,0 +1,318 @@
+// src/pdf/OcPdfDocument.tsx
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  Image,
+  StyleSheet,
+  Font
+} from "@react-pdf/renderer";
+
+// src/constants/index.ts
+var IVA_RATE = 0.19;
+var RETENCION_HONORARIOS_RATE = 0.1525;
+var TIPO_DOCUMENTO_OPTIONS = [
+  { value: "factura_electronica", label: "Factura Compra Electronica" },
+  { value: "boleta_honorarios", label: "Boleta de Honorarios" },
+  { value: "factura_exenta", label: "Factura Compra Exenta Electronica" }
+];
+var CONDICION_PAGO_OPTIONS = [
+  { value: "contado", label: "Contado" },
+  { value: "contra_factura", label: "Contra factura" },
+  { value: "contra_entrega", label: "Contra entrega" },
+  { value: "credito_7", label: "Credito 7 dias" },
+  { value: "credito_15", label: "Credito 15 dias" },
+  { value: "credito_30", label: "Credito 30 dias" },
+  { value: "credito_60", label: "Credito 60 dias" },
+  { value: "credito_90", label: "Credito 90 dias" },
+  { value: "anticipo_50_factura", label: "Anticipo 50% + factura" },
+  { value: "anticipo_50_entrega", label: "Anticipo 50% + entrega" },
+  { value: "contra_boleta_honorarios", label: "Pago contra boleta de honorarios" }
+];
+var ESTADOS_APROBADOS = [
+  "aprobada",
+  "enviada_proveedor",
+  "en_transito",
+  "bodega_terralink",
+  "en_preparacion",
+  "guia_despacho",
+  "entregada_proyecto",
+  "recepcionado_proyecto"
+];
+var EMPRESA = {
+  nombre: "TERRALINK SPA",
+  giro: "VENTA AL POR MENOR DE APARATOS ELECTRICOS, TEXTILES PARA EL HOGAR Y OT",
+  direccion: "AVDA DEL PARQUE 4928 OF 428, HUECHURABA",
+  telefono: "952449824",
+  email: "felipe.silva@terralink.cl",
+  rut: "76.509.816-5"
+};
+
+// src/pdf/OcPdfDocument.tsx
+import { jsx, jsxs } from "react/jsx-runtime";
+Font.register({
+  family: "Helvetica",
+  fonts: [
+    { src: "Helvetica" },
+    { src: "Helvetica-Bold", fontWeight: "bold" }
+  ]
+});
+var s = StyleSheet.create({
+  page: { fontFamily: "Helvetica", fontSize: 9, padding: 40, color: "#1a1a1a" },
+  headerRow: { flexDirection: "row", marginBottom: 16 },
+  logo: { width: 110, height: 35, objectFit: "contain" },
+  headerCenter: { flex: 1, paddingLeft: 12 },
+  empresaNombre: { fontSize: 11, fontWeight: "bold", marginBottom: 2 },
+  empresaGiro: { fontSize: 7, color: "#555", marginBottom: 2 },
+  empresaInfo: { fontSize: 8, color: "#333", marginBottom: 1 },
+  folioBox: { width: 170, borderWidth: 2, borderColor: "#cc0000", borderStyle: "solid", padding: 10, alignItems: "center", justifyContent: "center" },
+  folioRut: { fontSize: 11, fontWeight: "bold", color: "#cc0000", marginBottom: 6 },
+  folioTitle: { fontSize: 12, fontWeight: "bold", color: "#cc0000", marginBottom: 4 },
+  folioNumber: { fontSize: 11, fontWeight: "bold", color: "#cc0000" },
+  estadoBadge: { marginTop: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, alignSelf: "center" },
+  estadoText: { fontSize: 9, fontWeight: "bold", color: "#ffffff" },
+  infoBlock: { borderWidth: 1, borderColor: "#999", borderStyle: "solid", padding: 8, marginBottom: 10, flexDirection: "row" },
+  infoLeft: { flex: 1 },
+  infoRight: { width: 200 },
+  infoRow: { flexDirection: "row", marginBottom: 2 },
+  infoLabel: { fontSize: 8, fontWeight: "bold", width: 95, textAlign: "right", paddingRight: 5 },
+  infoValue: { fontSize: 8, flex: 1 },
+  infoLabelRight: { fontSize: 8, fontWeight: "bold", width: 100, textAlign: "right", paddingRight: 5 },
+  table: { borderWidth: 1, borderColor: "#999", borderStyle: "solid", marginBottom: 10 },
+  tableHeader: { flexDirection: "row", backgroundColor: "#f5f5f5", borderBottomWidth: 1, borderBottomColor: "#999", borderBottomStyle: "solid", paddingVertical: 5 },
+  tableRow: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: "#ddd", borderBottomStyle: "solid", paddingVertical: 4, minHeight: 20 },
+  colCodigo: { width: "12%", paddingLeft: 6 },
+  colDescripcion: { width: "33%", paddingLeft: 6 },
+  colCantidad: { width: "14%", textAlign: "right", paddingRight: 6 },
+  colPrecio: { width: "14%", textAlign: "right", paddingRight: 6 },
+  colDescuento: { width: "12%", textAlign: "right", paddingRight: 6 },
+  colTotal: { width: "15%", textAlign: "right", paddingRight: 6 },
+  thText: { fontSize: 8, fontWeight: "bold" },
+  tdText: { fontSize: 8 },
+  footerRow: { flexDirection: "row", marginBottom: 16 },
+  commentBox: { flex: 1, paddingRight: 20 },
+  commentLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 3 },
+  commentText: { fontSize: 8, color: "#333" },
+  totalsBox: { width: 220, borderWidth: 1, borderColor: "#999", borderStyle: "solid", padding: 8 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 },
+  totalLabel: { fontSize: 9, fontWeight: "bold", textAlign: "right", width: 120 },
+  totalValue: { fontSize: 9, textAlign: "right", width: 80 },
+  totalSeparator: { borderTopWidth: 1, borderTopColor: "#999", borderTopStyle: "solid", marginVertical: 4 },
+  totalFinal: { fontSize: 10, fontWeight: "bold" },
+  signatureBlock: { borderWidth: 1, borderColor: "#999", borderStyle: "solid", padding: 10, marginTop: 20, flexDirection: "row", width: 300, alignSelf: "center" },
+  signatureLeft: { flex: 1 },
+  signatureRight: { flex: 1 },
+  signatureLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 12 }
+});
+function fmt(n) {
+  return `$ ${Math.round(n).toLocaleString("es-CL")}`;
+}
+function fmtFecha(iso) {
+  if (!iso) return "--";
+  const parts = iso.split("-");
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  return iso;
+}
+function fmtFolio(oc) {
+  if (oc.folio_global != null) return String(oc.folio_global);
+  if (oc.folio_proyecto) return oc.folio_proyecto;
+  const parts = oc.numero.split("-");
+  return parts[parts.length - 1] ?? oc.numero;
+}
+function fmtCondicionPago(value) {
+  if (!value) return "--";
+  return CONDICION_PAGO_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}
+function resolverEstadoLabel(estado) {
+  if (estado === "emitida") return { label: "Pendiente", color: "#d97706" };
+  if (ESTADOS_APROBADOS.includes(estado)) return { label: "Aprobada", color: "#16a34a" };
+  if (estado === "eliminada") return { label: "Eliminada", color: "#dc2626" };
+  return { label: "Rechazada", color: "#dc2626" };
+}
+function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
+  const subtotal = items.reduce(
+    (sum, i) => sum + (i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida),
+    0
+  );
+  const neto = subtotal;
+  const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
+  const esBoleta = tipoDoc === "boleta_honorarios";
+  const esExenta = tipoDoc === "factura_exenta";
+  const iva = esBoleta || esExenta ? 0 : Math.round(neto * IVA_RATE);
+  const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
+  const total = esBoleta ? neto - retencion : neto + iva;
+  const folioNum = fmtFolio(oc);
+  const centroNegocioDisplay = oc.centro_negocio_label || oc.proyecto_nombre.toUpperCase() || "GENERAL";
+  const { label: estadoLabel, color: estadoColor } = resolverEstadoLabel(oc.estado);
+  return /* @__PURE__ */ jsx(Document, { children: /* @__PURE__ */ jsxs(Page, { size: "LETTER", style: s.page, children: [
+    /* @__PURE__ */ jsxs(View, { style: s.headerRow, children: [
+      /* @__PURE__ */ jsx(Image, { style: s.logo, src: logoBase64 }),
+      /* @__PURE__ */ jsxs(View, { style: s.headerCenter, children: [
+        /* @__PURE__ */ jsx(Text, { style: s.empresaNombre, children: EMPRESA.nombre }),
+        /* @__PURE__ */ jsx(Text, { style: s.empresaGiro, children: EMPRESA.giro }),
+        /* @__PURE__ */ jsx(Text, { style: s.empresaInfo, children: EMPRESA.direccion }),
+        /* @__PURE__ */ jsxs(Text, { style: s.empresaInfo, children: [
+          "Telefono: ",
+          EMPRESA.telefono
+        ] }),
+        /* @__PURE__ */ jsxs(Text, { style: s.empresaInfo, children: [
+          "Email: ",
+          EMPRESA.email
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs(View, { style: s.folioBox, children: [
+        /* @__PURE__ */ jsxs(Text, { style: s.folioRut, children: [
+          "R.U.T: ",
+          EMPRESA.rut
+        ] }),
+        /* @__PURE__ */ jsx(Text, { style: s.folioTitle, children: "Orden de Compra" }),
+        /* @__PURE__ */ jsxs(Text, { style: s.folioNumber, children: [
+          "Folio N. ",
+          folioNum
+        ] }),
+        /* @__PURE__ */ jsx(View, { style: [s.estadoBadge, { backgroundColor: estadoColor }], children: /* @__PURE__ */ jsxs(Text, { style: s.estadoText, children: [
+          "Estado: ",
+          estadoLabel
+        ] }) })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs(View, { style: s.infoBlock, children: [
+      /* @__PURE__ */ jsxs(View, { style: s.infoLeft, children: [
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabel, children: "Senor(es):" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: proveedor.nombre })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabel, children: "Direccion:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: proveedor.direccion ?? "--" })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabel, children: "Ciudad:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: proveedor.ciudad ?? "--" })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabel, children: "Despacho:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: oc.despacho ?? "--" })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabel, children: "Condicion de pago:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: fmtCondicionPago(oc.condicion_pago) })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs(View, { style: s.infoRight, children: [
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabelRight, children: "R.U.T.:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: proveedor.rut ?? "--" })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabelRight, children: "Emision:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: fmtFecha(oc.fecha_emision) })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabelRight, children: "Recepcion:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: fmtFecha(oc.fecha_entrega_prom) })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabelRight, children: "Tasa:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: "1" })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.infoRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.infoLabelRight, children: "Centro de negocio:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.infoValue, children: centroNegocioDisplay })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs(View, { style: s.table, children: [
+      /* @__PURE__ */ jsxs(View, { style: s.tableHeader, children: [
+        /* @__PURE__ */ jsx(Text, { style: [s.thText, s.colCodigo], children: "CODIGO" }),
+        /* @__PURE__ */ jsx(Text, { style: [s.thText, s.colDescripcion], children: "PRODUCTO O SERVICIO" }),
+        /* @__PURE__ */ jsx(Text, { style: [s.thText, s.colCantidad], children: "CANTIDAD" }),
+        /* @__PURE__ */ jsx(Text, { style: [s.thText, s.colPrecio], children: "PRECIO" }),
+        /* @__PURE__ */ jsx(Text, { style: [s.thText, s.colDescuento], children: "REC/DESC." }),
+        /* @__PURE__ */ jsx(Text, { style: [s.thText, s.colTotal], children: "TOTAL" })
+      ] }),
+      items.map((item) => {
+        const lineTotal = item.precio_total ?? (item.precio_unitario ?? 0) * item.cantidad_pedida;
+        return /* @__PURE__ */ jsxs(View, { style: s.tableRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: [s.tdText, s.colCodigo], children: item.catalogo_general_id ?? (item.material_id != null && item.material_id > 0 ? String(item.material_id) : "") }),
+          /* @__PURE__ */ jsxs(Text, { style: [s.tdText, s.colDescripcion], children: [
+            item.descripcion_snap,
+            item.comentario ? `
+${item.comentario}` : ""
+          ] }),
+          /* @__PURE__ */ jsxs(Text, { style: [s.tdText, s.colCantidad], children: [
+            item.cantidad_pedida,
+            " ",
+            item.unidad_snap ?? "UN"
+          ] }),
+          /* @__PURE__ */ jsx(Text, { style: [s.tdText, s.colPrecio], children: item.precio_unitario != null ? fmt(item.precio_unitario) : "--" }),
+          /* @__PURE__ */ jsx(Text, { style: [s.tdText, s.colDescuento] }),
+          /* @__PURE__ */ jsx(Text, { style: [s.tdText, s.colTotal], children: lineTotal > 0 ? fmt(lineTotal) : "--" })
+        ] }, item.id);
+      })
+    ] }),
+    /* @__PURE__ */ jsxs(View, { style: s.footerRow, children: [
+      /* @__PURE__ */ jsxs(View, { style: s.commentBox, children: [
+        /* @__PURE__ */ jsx(Text, { style: s.commentLabel, children: "Comentario:" }),
+        /* @__PURE__ */ jsx(Text, { style: s.commentText, children: oc.comentario ?? oc.notas ?? "" })
+      ] }),
+      /* @__PURE__ */ jsxs(View, { style: s.totalsBox, children: [
+        /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "SubTotal:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: fmt(subtotal) })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "Desc/Rec:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: "$ 0" })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "Neto:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: esExenta ? "$ 0" : fmt(neto) })
+        ] }),
+        /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "Exento:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: esExenta ? fmt(neto) : "$ 0" })
+        ] }),
+        esBoleta ? /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "IVA RETENIDO (15.25%):" }),
+          /* @__PURE__ */ jsxs(Text, { style: s.totalValue, children: [
+            "$ -",
+            retencion.toLocaleString("es-CL")
+          ] })
+        ] }) : esExenta ? /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "IVA:" }),
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: "$ 0" })
+        ] }) : /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "IVA (19%):" }),
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: fmt(iva) })
+        ] }),
+        /* @__PURE__ */ jsx(View, { style: s.totalSeparator }),
+        /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
+          /* @__PURE__ */ jsx(Text, { style: [s.totalLabel, s.totalFinal], children: "Total:" }),
+          /* @__PURE__ */ jsx(Text, { style: [s.totalValue, s.totalFinal], children: fmt(total) })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs(View, { style: s.signatureBlock, children: [
+      /* @__PURE__ */ jsxs(View, { style: s.signatureLeft, children: [
+        /* @__PURE__ */ jsx(Text, { style: s.signatureLabel, children: "Nombre:" }),
+        /* @__PURE__ */ jsx(Text, { style: s.signatureLabel, children: "R.U.T:" }),
+        /* @__PURE__ */ jsx(Text, { style: s.signatureLabel, children: "Recinto:" })
+      ] }),
+      /* @__PURE__ */ jsxs(View, { style: s.signatureRight, children: [
+        /* @__PURE__ */ jsx(Text, { style: s.signatureLabel, children: "Fecha:" }),
+        /* @__PURE__ */ jsx(Text, { style: s.signatureLabel, children: "Firma:" })
+      ] })
+    ] })
+  ] }) });
+}
+export {
+  CONDICION_PAGO_OPTIONS,
+  EMPRESA,
+  ESTADOS_APROBADOS,
+  IVA_RATE,
+  OcPdfDocument,
+  RETENCION_HONORARIOS_RATE,
+  TIPO_DOCUMENTO_OPTIONS
+};
