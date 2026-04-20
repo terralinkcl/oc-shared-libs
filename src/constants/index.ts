@@ -3,10 +3,18 @@ import type { TipoDocumento } from "../types";
 export const IVA_RATE = 0.19;
 export const RETENCION_HONORARIOS_RATE = 0.1525;
 
+// Impuesto especifico a los combustibles (Ley 18.502)
+// Base de calculo: UTM vigente x tasa por m3 / 1000 para obtener CLP/litro.
+// Este valor cambia mensualmente segun la UTM publicada por el SII.
+// UTM abril 2026: $67.294 | Tasa G93: 6.0 UTM/m3 => $67.294 * 6 / 1000 = ~$404/litro
+// Usar este valor como referencia y actualizarlo cada mes, o recibirlo como prop.
+export const IMPTO_GASOLINA_POR_LITRO_DEFAULT = 404;
+
 export const TIPO_DOCUMENTO_OPTIONS: { value: TipoDocumento; label: string }[] = [
   { value: "factura_electronica", label: "Factura Compra Electronica" },
   { value: "boleta_honorarios", label: "Boleta de Honorarios" },
   { value: "factura_exenta", label: "Factura Compra Exenta Electronica" },
+  { value: "factura_gasolina", label: "Factura Gasolina (c/ Impto. Especifico)" },
 ];
 
 export const CONDICION_PAGO_OPTIONS: { value: string; label: string }[] = [

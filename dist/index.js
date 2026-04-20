@@ -23,6 +23,8 @@ __export(index_exports, {
   CONDICION_PAGO_OPTIONS: () => CONDICION_PAGO_OPTIONS,
   EMPRESA: () => EMPRESA,
   ESTADOS_APROBADOS: () => ESTADOS_APROBADOS,
+  GasolinaPdfDocument: () => GasolinaPdfDocument,
+  IMPTO_GASOLINA_POR_LITRO_DEFAULT: () => IMPTO_GASOLINA_POR_LITRO_DEFAULT,
   IVA_RATE: () => IVA_RATE,
   OcPdfDocument: () => OcPdfDocument,
   RETENCION_HONORARIOS_RATE: () => RETENCION_HONORARIOS_RATE,
@@ -36,10 +38,12 @@ var import_renderer = require("@react-pdf/renderer");
 // src/constants/index.ts
 var IVA_RATE = 0.19;
 var RETENCION_HONORARIOS_RATE = 0.1525;
+var IMPTO_GASOLINA_POR_LITRO_DEFAULT = 404;
 var TIPO_DOCUMENTO_OPTIONS = [
   { value: "factura_electronica", label: "Factura Compra Electronica" },
   { value: "boleta_honorarios", label: "Boleta de Honorarios" },
-  { value: "factura_exenta", label: "Factura Compra Exenta Electronica" }
+  { value: "factura_exenta", label: "Factura Compra Exenta Electronica" },
+  { value: "factura_gasolina", label: "Factura Gasolina (c/ Impto. Especifico)" }
 ];
 var CONDICION_PAGO_OPTIONS = [
   { value: "contado", label: "Contado" },
@@ -331,11 +335,269 @@ ${item.comentario}` : ""
     ] })
   ] }) });
 }
+
+// src/pdf/GasolinaPdfDocument.tsx
+var import_renderer2 = require("@react-pdf/renderer");
+var import_jsx_runtime2 = require("react/jsx-runtime");
+import_renderer2.Font.register({
+  family: "Helvetica",
+  fonts: [
+    { src: "Helvetica" },
+    { src: "Helvetica-Bold", fontWeight: "bold" }
+  ]
+});
+var s2 = import_renderer2.StyleSheet.create({
+  page: { fontFamily: "Helvetica", fontSize: 9, padding: 40, color: "#1a1a1a" },
+  headerRow: { flexDirection: "row", marginBottom: 16 },
+  logo: { width: 110, height: 35, objectFit: "contain" },
+  headerCenter: { flex: 1, paddingLeft: 12 },
+  empresaNombre: { fontSize: 11, fontWeight: "bold", marginBottom: 2 },
+  empresaGiro: { fontSize: 7, color: "#555", marginBottom: 2 },
+  empresaInfo: { fontSize: 8, color: "#333", marginBottom: 1 },
+  folioBox: { width: 170, borderWidth: 2, borderColor: "#cc0000", borderStyle: "solid", padding: 10, alignItems: "center", justifyContent: "center" },
+  folioRut: { fontSize: 11, fontWeight: "bold", color: "#cc0000", marginBottom: 6 },
+  folioTitle: { fontSize: 12, fontWeight: "bold", color: "#cc0000", marginBottom: 4 },
+  folioNumber: { fontSize: 11, fontWeight: "bold", color: "#cc0000" },
+  estadoBadge: { marginTop: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, alignSelf: "center" },
+  estadoText: { fontSize: 9, fontWeight: "bold", color: "#ffffff" },
+  infoBlock: { borderWidth: 1, borderColor: "#999", borderStyle: "solid", padding: 8, marginBottom: 10, flexDirection: "row" },
+  infoLeft: { flex: 1 },
+  infoRight: { width: 200 },
+  infoRow: { flexDirection: "row", marginBottom: 2 },
+  infoLabel: { fontSize: 8, fontWeight: "bold", width: 95, textAlign: "right", paddingRight: 5 },
+  infoValue: { fontSize: 8, flex: 1 },
+  infoLabelRight: { fontSize: 8, fontWeight: "bold", width: 100, textAlign: "right", paddingRight: 5 },
+  table: { borderWidth: 1, borderColor: "#999", borderStyle: "solid", marginBottom: 10 },
+  tableHeader: { flexDirection: "row", backgroundColor: "#f5f5f5", borderBottomWidth: 1, borderBottomColor: "#999", borderBottomStyle: "solid", paddingVertical: 5 },
+  tableRow: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: "#ddd", borderBottomStyle: "solid", paddingVertical: 4, minHeight: 20 },
+  colCodigo: { width: "12%", paddingLeft: 6 },
+  colDescripcion: { width: "33%", paddingLeft: 6 },
+  colCantidad: { width: "14%", textAlign: "right", paddingRight: 6 },
+  colPrecio: { width: "14%", textAlign: "right", paddingRight: 6 },
+  colDescuento: { width: "12%", textAlign: "right", paddingRight: 6 },
+  colTotal: { width: "15%", textAlign: "right", paddingRight: 6 },
+  thText: { fontSize: 8, fontWeight: "bold" },
+  tdText: { fontSize: 8 },
+  footerRow: { flexDirection: "row", marginBottom: 16 },
+  commentBox: { flex: 1, paddingRight: 20 },
+  commentLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 3 },
+  commentText: { fontSize: 8, color: "#333" },
+  totalsBox: { width: 240, borderWidth: 1, borderColor: "#999", borderStyle: "solid", padding: 8 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 },
+  totalLabel: { fontSize: 9, fontWeight: "bold", textAlign: "right", width: 140 },
+  totalValue: { fontSize: 9, textAlign: "right", width: 80 },
+  totalSeparator: { borderTopWidth: 1, borderTopColor: "#999", borderTopStyle: "solid", marginVertical: 4 },
+  totalFinal: { fontSize: 10, fontWeight: "bold" },
+  imptoNote: { fontSize: 7, color: "#666", marginTop: 6 },
+  signatureBlock: { borderWidth: 1, borderColor: "#999", borderStyle: "solid", padding: 10, marginTop: 20, flexDirection: "row", width: 300, alignSelf: "center" },
+  signatureLeft: { flex: 1 },
+  signatureRight: { flex: 1 },
+  signatureLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 12 }
+});
+function fmt2(n) {
+  return `$ ${Math.round(n).toLocaleString("es-CL")}`;
+}
+function fmtFecha2(iso) {
+  if (!iso) return "--";
+  const parts = iso.split("-");
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  return iso;
+}
+function fmtFolio2(oc) {
+  if (oc.folio_global != null) return String(oc.folio_global);
+  if (oc.folio_proyecto) return oc.folio_proyecto;
+  const parts = oc.numero.split("-");
+  return parts[parts.length - 1] ?? oc.numero;
+}
+function fmtCondicionPago2(value) {
+  if (!value) return "--";
+  return CONDICION_PAGO_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}
+function resolverEstadoLabel2(estado) {
+  if (estado === "emitida") return { label: "Pendiente", color: "#d97706" };
+  if (ESTADOS_APROBADOS.includes(estado)) return { label: "Aprobada", color: "#16a34a" };
+  if (estado === "eliminada") return { label: "Eliminada", color: "#dc2626" };
+  return { label: "Rechazada", color: "#dc2626" };
+}
+function GasolinaPdfDocument({ oc, items, proveedor, logoBase64 }) {
+  const neto = items.reduce(
+    (sum, i) => sum + (i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida),
+    0
+  );
+  const totalLitros = items.reduce((sum, i) => sum + i.cantidad_pedida, 0);
+  const tasaPorLitro = oc.tasa_impto_especifico_por_litro ?? IMPTO_GASOLINA_POR_LITRO_DEFAULT;
+  const iva = Math.round(neto * IVA_RATE);
+  const imptoEspecifico = Math.round(totalLitros * tasaPorLitro);
+  const total = neto + iva + imptoEspecifico;
+  const folioNum = fmtFolio2(oc);
+  const centroNegocioDisplay = oc.centro_negocio_label || oc.proyecto_nombre.toUpperCase() || "GENERAL";
+  const { label: estadoLabel, color: estadoColor } = resolverEstadoLabel2(oc.estado);
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Document, { children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Page, { size: "LETTER", style: s2.page, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.headerRow, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Image, { style: s2.logo, src: logoBase64 }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.headerCenter, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.empresaNombre, children: EMPRESA.nombre }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.empresaGiro, children: EMPRESA.giro }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.empresaInfo, children: EMPRESA.direccion }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.empresaInfo, children: [
+          "Telefono: ",
+          EMPRESA.telefono
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.empresaInfo, children: [
+          "Email: ",
+          EMPRESA.email
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.folioBox, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.folioRut, children: [
+          "R.U.T: ",
+          EMPRESA.rut
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.folioTitle, children: "Orden de Compra" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.folioNumber, children: [
+          "Folio N. ",
+          folioNum
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.View, { style: [s2.estadoBadge, { backgroundColor: estadoColor }], children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.estadoText, children: [
+          "Estado: ",
+          estadoLabel
+        ] }) })
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoBlock, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoLeft, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabel, children: "Senor(es):" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: proveedor.nombre })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabel, children: "Direccion:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: proveedor.direccion ?? "--" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabel, children: "Ciudad:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: proveedor.ciudad ?? "--" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabel, children: "Despacho:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: oc.despacho ?? "--" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabel, children: "Condicion de pago:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: fmtCondicionPago2(oc.condicion_pago) })
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRight, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabelRight, children: "R.U.T.:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: proveedor.rut ?? "--" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabelRight, children: "Emision:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: fmtFecha2(oc.fecha_emision) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabelRight, children: "Recepcion:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: fmtFecha2(oc.fecha_entrega_prom) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabelRight, children: "Tasa:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: "1" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.infoRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoLabelRight, children: "Centro de negocio:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.infoValue, children: centroNegocioDisplay })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.table, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.tableHeader, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colCodigo], children: "CODIGO" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colDescripcion], children: "PRODUCTO" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colCantidad], children: "LITROS" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colPrecio], children: "P. NETO/LT" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colDescuento], children: "REC/DESC." }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colTotal], children: "NETO TOTAL" })
+      ] }),
+      items.map((item) => {
+        const lineTotal = item.precio_total ?? (item.precio_unitario ?? 0) * item.cantidad_pedida;
+        return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.tableRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colCodigo], children: item.catalogo_general_id ?? (item.material_id != null && item.material_id > 0 ? String(item.material_id) : "") }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: [s2.tdText, s2.colDescripcion], children: [
+            item.descripcion_snap,
+            item.comentario ? `
+${item.comentario}` : ""
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: [s2.tdText, s2.colCantidad], children: [
+            item.cantidad_pedida,
+            " L"
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colPrecio], children: item.precio_unitario != null ? fmt2(item.precio_unitario) : "--" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colDescuento] }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colTotal], children: lineTotal > 0 ? fmt2(lineTotal) : "--" })
+        ] }, item.id);
+      })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.footerRow, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.commentBox, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.commentLabel, children: "Comentario:" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.commentText, children: oc.comentario ?? oc.notas ?? "" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.imptoNote, children: [
+          "* Impto. Especifico Combustibles (Ley 18.502): $ ",
+          Math.round(tasaPorLitro).toLocaleString("es-CL"),
+          " / litro",
+          "\n",
+          "* Total litros: ",
+          totalLitros.toLocaleString("es-CL"),
+          " L"
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.totalsBox, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.totalRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.totalLabel, children: "Neto:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.totalValue, children: fmt2(neto) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.totalRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.totalLabel, children: "IVA (19%):" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.totalValue, children: fmt2(iva) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.totalRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: s2.totalLabel, children: [
+            "Impto. Especifico (",
+            totalLitros.toLocaleString("es-CL"),
+            " L x $ ",
+            Math.round(tasaPorLitro).toLocaleString("es-CL"),
+            "):"
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.totalValue, children: fmt2(imptoEspecifico) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.View, { style: s2.totalSeparator }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.totalRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.totalLabel, s2.totalFinal], children: "Total:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.totalValue, s2.totalFinal], children: fmt2(total) })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.signatureBlock, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.signatureLeft, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.signatureLabel, children: "Nombre:" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.signatureLabel, children: "R.U.T:" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.signatureLabel, children: "Recinto:" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.signatureRight, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.signatureLabel, children: "Fecha:" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: s2.signatureLabel, children: "Firma:" })
+      ] })
+    ] })
+  ] }) });
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   CONDICION_PAGO_OPTIONS,
   EMPRESA,
   ESTADOS_APROBADOS,
+  GasolinaPdfDocument,
+  IMPTO_GASOLINA_POR_LITRO_DEFAULT,
   IVA_RATE,
   OcPdfDocument,
   RETENCION_HONORARIOS_RATE,

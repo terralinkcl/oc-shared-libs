@@ -3,10 +3,12 @@
 export type TipoDocumento =
   | "factura_electronica"
   | "boleta_honorarios"
-  | "factura_exenta";
+  | "factura_exenta"
+  | "factura_gasolina";
 
 export type EstadoOC =
   | "emitida"
+  | "pendiente_aprobacion_tesoreria"
   | "aprobada"
   | "enviada_proveedor"
   | "en_transito"
@@ -61,4 +63,14 @@ export interface ProveedorParaPdf {
   rut: string | null;
   direccion: string | null;
   ciudad: string | null;
+}
+
+// ── OC Gasolina ───────────────────────────────────────────────────────────────
+// Extiende OcParaPdf con la tasa del impuesto especifico de combustible.
+// La tasa es en CLP por litro, calculada mensualmente en base a la UTM vigente.
+// Ejemplo: si la UTM es $67.294 y la tasa es 6.0 UTM/m3, la tasa por litro = (67294 * 6) / 1000 = ~$404/litro.
+
+export interface OcGasolinaParaPdf extends OcParaPdf {
+  // Tasa del impuesto especifico a los combustibles en CLP por litro (varia por UTM mensual)
+  tasa_impto_especifico_por_litro: number;
 }

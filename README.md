@@ -75,11 +75,67 @@ const buffer = await renderToBuffer(
 
 ## Tipos de documento
 
-| `tipo_documento`      | Comportamiento                          |
-|-----------------------|-----------------------------------------|
-| `factura_electronica` | IVA 19% (default)                       |
-| `boleta_honorarios`   | Sin IVA, retencion 15.25%              |
-| `factura_exenta`      | Sin IVA, Neto=$0, Exento=subtotal       |
+| `tipo_documento`      | Componente            | Comportamiento                                    |
+|-----------------------|-----------------------|---------------------------------------------------|
+| `factura_electronica` | `OcPdfDocument`       | IVA 19% (default)                                 |
+| `boleta_honorarios`   | `OcPdfDocument`       | Sin IVA, retencion 15.25%                         |
+| `factura_exenta`      | `OcPdfDocument`       | Sin IVA, Neto=$0, Exento=subtotal                 |
+| `factura_gasolina`    | `GasolinaPdfDocument` | IVA 19% + Impto. Especifico Ley 18.502 por litro  |
+
+---
+
+## Uso: OC Gasolina
+
+Para facturas de combustible con Impuesto Especifico (Ley 18.502):
+
+```tsx
+import { GasolinaPdfDocument, IMPTO_GASOLINA_POR_LITRO_DEFAULT } from "oc-shared-libs";
+import type { OcGasolinaParaPdf, OcItemParaPdf, ProveedorParaPdf } from "oc-shared-libs";
+
+const oc: OcGasolinaParaPdf = {
+  // ...campos base de OcParaPdf
+  tipo_documento: "factura_gasolina",
+  // Tasa impuesto especifico en CLP/litro (actualizar mensualmente segun UTM del SII)
+  // Formula: UTM_vigente x tasa_UTM_por_m3 / 1000
+  // Ejemplo abril 2026: $67.294 x 6.0 / 1000 = $404/litro (G93)
+  tasa_impto_especifico_por_litro: IMPTO_GASOLINA_POR_LITRO_DEFAULT, // o valor actualizado
+};
+
+const items: OcItemParaPdf[] = [
+  {
+    id: "1",
+    material_id: null,
+    catalogo_general_id: "G001",
+    descripcion_snap: "Gasolina G93",
+    unidad_snap: "L",
+    cantidad_pedida: 500,         // litros
+    precio_unitario: 850,         // precio neto por litro
+    precio_total: 425000,         // neto total (sin IVA ni impto esp)
+    comentario: null,
+  },
+];
+
+// Totales que genera el PDF automaticamente:
+// Neto:              $ 425.000
+// IVA (19%):         $  80.750
+// Impto. Esp. (500L x $404): $ 202.000
+// Total:             $ 707.750
+
+const buffer = await renderToBuffer(
+  <GasolinaPdfDocument oc={oc} items={items} proveedor={proveedor} logoBase64={logoBase64} />
+);
+```
+
+### Actualizacion mensual de la tasa de combustible
+
+La tasa del impuesto especifico cambia con la UTM mensual del SII:
+
+```ts
+// Calcular tasa actualizada:
+const utm = 68000; // UTM del mes (revisar en sii.cl)
+const tasaUtmPorM3 = 6.0; // tasa fija G93 (Ley 18.502)
+const tasaPorLitro = Math.round((utm * tasaUtmPorM3) / 1000);
+```
 
 ---
 
@@ -99,14 +155,15 @@ El badge de estado se genera automaticamente segun el campo `estado`:
 ## Exports disponibles
 
 ```ts
-// Componente principal
+// Componentes PDF
 import { OcPdfDocument } from "oc-shared-libs";
+import { GasolinaPdfDocument } from "oc-shared-libs";
 
 // Tipos
-import type { OcParaPdf, OcItemParaPdf, ProveedorParaPdf, TipoDocumento, EstadoOC } from "oc-shared-libs";
+import type { OcParaPdf, OcGasolinaParaPdf, OcItemParaPdf, ProveedorParaPdf, TipoDocumento, EstadoOC } from "oc-shared-libs";
 
 // Constantes
-import { TIPO_DOCUMENTO_OPTIONS, CONDICION_PAGO_OPTIONS, IVA_RATE, RETENCION_HONORARIOS_RATE } from "oc-shared-libs";
+import { TIPO_DOCUMENTO_OPTIONS, CONDICION_PAGO_OPTIONS, IVA_RATE, RETENCION_HONORARIOS_RATE, IMPTO_GASOLINA_POR_LITRO_DEFAULT } from "oc-shared-libs";
 ```
 
 ---
