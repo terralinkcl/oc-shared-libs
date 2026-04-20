@@ -39,11 +39,12 @@ Consumidores:
 
 ## 4. Tipos de documento soportados
 
-| tipo_documento        | IVA     | Logica especial             |
-|-----------------------|---------|-----------------------------|
-| factura_electronica   | 19%     | Comportamiento estandar     |
-| boleta_honorarios     | ninguno | Retencion 15.25%            |
-| factura_exenta        | ninguno | Neto=0, Exento=subtotal     |
+| tipo_documento        | IVA     | Logica especial                         |
+|-----------------------|---------|-----------------------------------------|
+| factura_electronica   | 19%     | Comportamiento estandar                 |
+| boleta_honorarios     | ninguno | Retencion 15.25%                        |
+| factura_exenta        | ninguno | Neto=0, Exento=subtotal                 |
+| factura_gasolina      | 19%     | + Impto. Especifico combustible (L.18502) |
 
 ## 5. Tareas Atomicas
 
@@ -67,8 +68,10 @@ Consumidores:
 ## 7. Como instalar en otra app
 
 ```bash
-npm install github:OWNER/oc-shared-libs
+npm install github:terralinkcl/oc-shared-libs#<commit-sha>
 ```
+
+Pinear siempre al SHA del commit (politica supply chain de Terralink, min-release-age=21).
 
 ```tsx
 import { OcPdfDocument } from "oc-shared-libs";
@@ -78,3 +81,39 @@ const buffer = await renderToBuffer(
   <OcPdfDocument oc={oc} items={items} proveedor={proveedor} logoBase64={logo} />
 );
 ```
+
+## 8. Estado de adopcion por consumidor
+
+| Consumidor            | PDFs     | Tipos    | Constantes | Estado de enum backend |
+|-----------------------|----------|----------|------------|------------------------|
+| app-abastecimiento    | pendiente| si       | si         | N/A (usa Firestore)    |
+| app-tesoreria frontend| pendiente| si (branch)| si (branch)| Fase 3 pendiente    |
+| app-tesoreria backend | N/A (Python) | pendiente alinear | pendiente alinear | Fase 3 pendiente |
+
+## 9. Fase 3 pendiente — Alinear backend Python de Tesoreria
+
+**Contexto:** el backend Python de Tesoreria (`app-tesoreria/backend`) tiene un enum Postgres
+`TipoDocumentoOC` con nombres distintos al vocabulario canonico:
+
+| Canonico (shared-libs) | Backend Teso actual       |
+|------------------------|---------------------------|
+| factura_electronica    | factura_compra            |
+| factura_exenta         | factura_compra_exenta     |
+| boleta_honorarios      | boleta_honorarios (OK)    |
+| factura_gasolina       | no existe                 |
+
+Mientras no se alinee, Abastecimiento traduce en frontera
+(`mapTipoDocumentoATesoreria` en `lib/tesoreria-client.ts`) y el frontend de Teso
+no se puede mergear a main (branch `feat/align-shared-libs`).
+
+**Tareas:**
+
+- [ ] Migracion Alembic 036 que agregue `factura_electronica`, `factura_exenta`, `factura_gasolina` al enum
+- [ ] Migrar datos existentes: `factura_compra → factura_electronica`, `factura_compra_exenta → factura_exenta`
+- [ ] Deprecar (o eliminar en migracion 037) los valores legacy `factura_compra`, `factura_compra_exenta`
+- [ ] Actualizar `backend/app/models/orden_compra.py` con los nombres nuevos
+- [ ] Actualizar `backend/app/schemas/inter_service.py` y `orden_compra.py`
+- [ ] Actualizar tests (`backend/tests/factories.py`, `test_oc_v2.py`, `conftest.py`)
+- [ ] Rebuildear componente GasolinaPdf en Teso (cuando soporte factura_gasolina)
+- [ ] Eliminar `mapTipoDocumentoATesoreria` en Abast y dejar de traducir
+- [ ] Mergear branch `feat/align-shared-libs` de Teso junto con esta migracion
