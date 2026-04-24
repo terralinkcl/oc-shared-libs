@@ -73,8 +73,13 @@ const s = StyleSheet.create({
   signatureLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 12 },
 });
 
-function fmt(n: number): string {
+function fmt(n: number, moneda: "clp" | "uf" = "clp"): string {
+  if (moneda === "uf") return `UF ${n.toFixed(4)}`;
   return `$ ${Math.round(n).toLocaleString("es-CL")}`;
+}
+
+function zero(moneda: "clp" | "uf" = "clp"): string {
+  return moneda === "uf" ? "UF 0.0000" : "$ 0";
 }
 
 function fmtFecha(iso: string | null | undefined): string {
@@ -116,6 +121,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
     0
   );
   const neto = subtotal;
+  const moneda: "clp" | "uf" = oc.moneda ?? "clp";
 
   // Fallback para OCs antiguas sin tipo_documento
   const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
@@ -191,9 +197,9 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
                   {item.descripcion_snap}{item.comentario ? `\n${item.comentario}` : ""}
                 </Text>
                 <Text style={[s.tdText, s.colCantidad]}>{item.cantidad_pedida} {item.unidad_snap ?? "UN"}</Text>
-                <Text style={[s.tdText, s.colPrecio]}>{item.precio_unitario != null ? fmt(item.precio_unitario) : "--"}</Text>
+                <Text style={[s.tdText, s.colPrecio]}>{item.precio_unitario != null ? fmt(item.precio_unitario, moneda) : "--"}</Text>
                 <Text style={[s.tdText, s.colDescuento]}></Text>
-                <Text style={[s.tdText, s.colTotal]}>{lineTotal > 0 ? fmt(lineTotal) : "--"}</Text>
+                <Text style={[s.tdText, s.colTotal]}>{lineTotal > 0 ? fmt(lineTotal, moneda) : "--"}</Text>
               </View>
             );
           })}
@@ -206,21 +212,21 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
             <Text style={s.commentText}>{oc.comentario ?? oc.notas ?? ""}</Text>
           </View>
           <View style={s.totalsBox}>
-            <View style={s.totalRow}><Text style={s.totalLabel}>SubTotal:</Text><Text style={s.totalValue}>{fmt(subtotal)}</Text></View>
-            <View style={s.totalRow}><Text style={s.totalLabel}>Desc/Rec:</Text><Text style={s.totalValue}>$ 0</Text></View>
-            <View style={s.totalRow}><Text style={s.totalLabel}>Neto:</Text><Text style={s.totalValue}>{esExenta ? "$ 0" : fmt(neto)}</Text></View>
-            <View style={s.totalRow}><Text style={s.totalLabel}>Exento:</Text><Text style={s.totalValue}>{esExenta ? fmt(neto) : "$ 0"}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>SubTotal:</Text><Text style={s.totalValue}>{fmt(subtotal, moneda)}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>Desc/Rec:</Text><Text style={s.totalValue}>{zero(moneda)}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>Neto:</Text><Text style={s.totalValue}>{esExenta ? zero(moneda) : fmt(neto, moneda)}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>Exento:</Text><Text style={s.totalValue}>{esExenta ? fmt(neto, moneda) : zero(moneda)}</Text></View>
             {esBoleta ? (
-              <View style={s.totalRow}><Text style={s.totalLabel}>IVA RETENIDO (15.25%):</Text><Text style={s.totalValue}>$ -{retencion.toLocaleString("es-CL")}</Text></View>
+              <View style={s.totalRow}><Text style={s.totalLabel}>IVA RETENIDO (15.25%):</Text><Text style={s.totalValue}>{moneda === "uf" ? `UF -${retencion.toFixed(4)}` : `$ -${retencion.toLocaleString("es-CL")}`}</Text></View>
             ) : esExenta ? (
-              <View style={s.totalRow}><Text style={s.totalLabel}>IVA:</Text><Text style={s.totalValue}>$ 0</Text></View>
+              <View style={s.totalRow}><Text style={s.totalLabel}>IVA:</Text><Text style={s.totalValue}>{zero(moneda)}</Text></View>
             ) : (
-              <View style={s.totalRow}><Text style={s.totalLabel}>IVA (19%):</Text><Text style={s.totalValue}>{fmt(iva)}</Text></View>
+              <View style={s.totalRow}><Text style={s.totalLabel}>IVA (19%):</Text><Text style={s.totalValue}>{fmt(iva, moneda)}</Text></View>
             )}
             <View style={s.totalSeparator} />
             <View style={s.totalRow}>
               <Text style={[s.totalLabel, s.totalFinal]}>Total:</Text>
-              <Text style={[s.totalValue, s.totalFinal]}>{fmt(total)}</Text>
+              <Text style={[s.totalValue, s.totalFinal]}>{fmt(total, moneda)}</Text>
             </View>
           </View>
         </View>

@@ -202,8 +202,12 @@ var s = import_renderer.StyleSheet.create({
   signatureRight: { flex: 1 },
   signatureLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 12 }
 });
-function fmt(n) {
+function fmt(n, moneda = "clp") {
+  if (moneda === "uf") return `UF ${n.toFixed(4)}`;
   return `$ ${Math.round(n).toLocaleString("es-CL")}`;
+}
+function zero(moneda = "clp") {
+  return moneda === "uf" ? "UF 0.0000" : "$ 0";
 }
 function fmtFecha(iso) {
   if (!iso) return "--";
@@ -233,6 +237,7 @@ function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
     0
   );
   const neto = subtotal;
+  const moneda = oc.moneda ?? "clp";
   const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
   const esBoleta = tipoDoc === "boleta_honorarios";
   const esExenta = tipoDoc === "factura_exenta";
@@ -343,9 +348,9 @@ ${item.comentario}` : ""
             " ",
             item.unidad_snap ?? "UN"
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colPrecio], children: item.precio_unitario != null ? fmt(item.precio_unitario) : "--" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colPrecio], children: item.precio_unitario != null ? fmt(item.precio_unitario, moneda) : "--" }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colDescuento] }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colTotal], children: lineTotal > 0 ? fmt(lineTotal) : "--" })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colTotal], children: lineTotal > 0 ? fmt(lineTotal, moneda) : "--" })
         ] }, item.id);
       })
     ] }),
@@ -357,37 +362,34 @@ ${item.comentario}` : ""
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalsBox, children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "SubTotal:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(subtotal) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(subtotal, moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Desc/Rec:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: "$ 0" })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: zero(moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Neto:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: esExenta ? "$ 0" : fmt(neto) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: esExenta ? zero(moneda) : fmt(neto, moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Exento:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: esExenta ? fmt(neto) : "$ 0" })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: esExenta ? fmt(neto, moneda) : zero(moneda) })
         ] }),
         esBoleta ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA RETENIDO (15.25%):" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.Text, { style: s.totalValue, children: [
-            "$ -",
-            retencion.toLocaleString("es-CL")
-          ] })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: moneda === "uf" ? `UF -${retencion.toFixed(4)}` : `$ -${retencion.toLocaleString("es-CL")}` })
         ] }) : esExenta ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: "$ 0" })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: zero(moneda) })
         ] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA (19%):" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(iva) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(iva, moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.View, { style: s.totalSeparator }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.totalLabel, s.totalFinal], children: "Total:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.totalValue, s.totalFinal], children: fmt(total) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.totalValue, s.totalFinal], children: fmt(total, moneda) })
         ] })
       ] })
     ] }),
