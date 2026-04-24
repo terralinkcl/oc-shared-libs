@@ -8,6 +8,14 @@ export type { GasolinaPdfDocumentProps } from "./pdf/GasolinaPdfDocument";
 // Tipos
 export type {
   TipoDocumento,
+  TipoDocumentoExtendido,
+  CentroNegocio,
+  AgrupacionOC,
+  TipoCreacionOC,
+  MonedaOC,
+  CondicionPago,
+  EstadoOCOperacional,
+  EstadoOCFinanciero,
   EstadoOC,
   OcParaPdf,
   OcItemParaPdf,
@@ -22,6 +30,11 @@ export {
   IMPTO_GASOLINA_POR_LITRO_DEFAULT,
   TIPO_DOCUMENTO_OPTIONS,
   CONDICION_PAGO_OPTIONS,
+  CONDICION_PAGO_OPTIONS_TYPED,
+  CENTRO_NEGOCIO_OPTIONS,
+  MONEDA_OPTIONS,
+  TIPO_CREACION_OPTIONS,
+  AGRUPACION_OPTIONS,
   ESTADOS_APROBADOS,
   EMPRESA,
 } from "./constants";

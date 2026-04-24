@@ -6,7 +6,54 @@ export type TipoDocumento =
   | "factura_exenta"
   | "factura_gasolina";
 
-export type EstadoOC =
+// Extras especificos de Tesoreria (no emitibles desde Abast)
+export type TipoDocumentoExtendido =
+  | TipoDocumento
+  | "declaracion_importacion"
+  | "nc_compra"
+  | "nd_compra";
+
+// ── Centro de negocio ─────────────────────────────────────────────────────────
+
+export type CentroNegocio = "empresa" | "om" | "proyectos";
+
+// ── Agrupacion EERR ───────────────────────────────────────────────────────────
+
+export type AgrupacionOC =
+  // Costo Proyecto
+  | "mano_de_obra" | "suministros" | "servicios" | "equipos_principales"
+  | "tramitaciones" | "adicionales" | "memoria_calculo" | "transporte" | "bodega"
+  // Costo O&M
+  | "subcontratos" | "repuestos" | "insumos_limpieza" | "herramientas"
+  // Gastos Op. y Admin
+  | "arriendo_oficina" | "arriendo_vehiculo" | "combustible" | "comunicaciones"
+  | "licencias_software" | "mantenimiento_vehiculos" | "seguros"
+  | "servicios_profesionales" | "suministros_oficina"
+  // Remuneraciones
+  | "sueldos" | "prevision_salud" | "honorarios"
+  // Depreciacion
+  | "depreciacion_equipos" | "depreciacion_vehiculos";
+
+// ── Tipo de creacion ──────────────────────────────────────────────────────────
+
+export type TipoCreacionOC =
+  | "cubicacion" | "template" | "rapida" | "adicional" | "caja_chica" | "legacy";
+
+// ── Moneda ────────────────────────────────────────────────────────────────────
+
+export type MonedaOC = "clp" | "uf";
+
+// ── Condicion de pago ─────────────────────────────────────────────────────────
+
+export type CondicionPago =
+  | "contra_factura" | "contra_boleta_honorarios" | "contado"
+  | "credito_7" | "credito_15" | "credito_30" | "credito_60" | "credito_90"
+  | "contra_entrega" | "anticipo_50_factura" | "anticipo_50_entrega";
+
+// ── Estados de OC ─────────────────────────────────────────────────────────────
+
+// Estados operacionales/logisticos (usados en Abastecimiento)
+export type EstadoOCOperacional =
   | "emitida"
   | "pendiente_aprobacion_tesoreria"
   | "aprobada"
@@ -17,9 +64,26 @@ export type EstadoOC =
   | "guia_despacho"
   | "entregada_proyecto"
   | "recepcionado_proyecto"
-  | "anulacion_solicitada"
+  | "pendiente_anulacion"
   | "anulada"
   | "eliminada";
+
+// Estados financieros (usados en Tesoreria)
+export type EstadoOCFinanciero =
+  | "borrador"
+  | "pendiente_aprobacion"
+  | "aprobada"
+  | "activa"
+  | "facturada"
+  | "cerrada"
+  | "rechazada"
+  | "excedida"
+  | "pendiente_anulacion"
+  | "anulada"
+  | "eliminada";
+
+// Alias por retrocompatibilidad con codigo existente
+export type EstadoOC = EstadoOCOperacional;
 
 // ── Orden de Compra ───────────────────────────────────────────────────────────
 
@@ -30,6 +94,7 @@ export interface OcParaPdf {
   folio_global: number | null;
   estado: EstadoOC;
   tipo_documento: TipoDocumento | null;
+  moneda?: MonedaOC | null;
   condicion_pago: string | null;
   fecha_emision: string | null;
   fecha_entrega_prom: string | null;

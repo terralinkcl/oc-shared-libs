@@ -1,4 +1,11 @@
-import type { TipoDocumento } from "../types";
+import type {
+  TipoDocumento,
+  CentroNegocio,
+  AgrupacionOC,
+  TipoCreacionOC,
+  MonedaOC,
+  CondicionPago,
+} from "../types";
 
 export const IVA_RATE = 0.19;
 export const RETENCION_HONORARIOS_RATE = 0.1525;
@@ -40,6 +47,76 @@ export const ESTADOS_APROBADOS: string[] = [
   "guia_despacho",
   "entregada_proyecto",
   "recepcionado_proyecto",
+];
+
+export const CENTRO_NEGOCIO_OPTIONS: { value: CentroNegocio; label: string }[] = [
+  { value: "empresa", label: "Empresa" },
+  { value: "om", label: "O&M" },
+  { value: "proyectos", label: "Proyectos" },
+];
+
+export const MONEDA_OPTIONS: { value: MonedaOC; label: string }[] = [
+  { value: "clp", label: "Pesos (CLP)" },
+  { value: "uf", label: "UF" },
+];
+
+export const TIPO_CREACION_OPTIONS: { value: TipoCreacionOC; label: string }[] = [
+  { value: "cubicacion", label: "Desde Cubicacion" },
+  { value: "rapida", label: "OC Rapida" },
+  { value: "adicional", label: "Adicional" },
+  { value: "template", label: "Desde Template" },
+  { value: "caja_chica", label: "Caja Chica" },
+  { value: "legacy", label: "Legado" },
+];
+
+export const AGRUPACION_OPTIONS: { value: AgrupacionOC; label: string; area: string }[] = [
+  // Costo Proyecto
+  { value: "equipos_principales",    label: "Equipos principales",     area: "Costo Proyecto" },
+  { value: "mano_de_obra",           label: "Mano de obra",            area: "Costo Proyecto" },
+  { value: "suministros",            label: "Suministros",             area: "Costo Proyecto" },
+  { value: "servicios",              label: "Servicios",               area: "Costo Proyecto" },
+  { value: "tramitaciones",          label: "Tramitaciones",           area: "Costo Proyecto" },
+  { value: "adicionales",            label: "Adicionales",             area: "Costo Proyecto" },
+  { value: "memoria_calculo",        label: "Memoria de calculo",      area: "Costo Proyecto" },
+  { value: "transporte",             label: "Transporte",              area: "Costo Proyecto" },
+  { value: "bodega",                 label: "Bodega",                  area: "Costo Proyecto" },
+  // Costo O&M
+  { value: "subcontratos",           label: "Subcontratos",            area: "Costo O&M" },
+  { value: "repuestos",              label: "Repuestos",               area: "Costo O&M" },
+  { value: "insumos_limpieza",       label: "Insumos limpieza",        area: "Costo O&M" },
+  { value: "herramientas",           label: "Herramientas",            area: "Costo O&M" },
+  // Gastos Op. y Admin
+  { value: "arriendo_oficina",       label: "Arriendo oficina",        area: "Gastos Op. y Admin" },
+  { value: "arriendo_vehiculo",      label: "Arriendo vehiculo",       area: "Gastos Op. y Admin" },
+  { value: "combustible",            label: "Combustible",             area: "Gastos Op. y Admin" },
+  { value: "comunicaciones",         label: "Comunicaciones",          area: "Gastos Op. y Admin" },
+  { value: "licencias_software",     label: "Licencias software",      area: "Gastos Op. y Admin" },
+  { value: "mantenimiento_vehiculos",label: "Mantenimiento vehiculos", area: "Gastos Op. y Admin" },
+  { value: "seguros",                label: "Seguros",                 area: "Gastos Op. y Admin" },
+  { value: "servicios_profesionales",label: "Servicios profesionales", area: "Gastos Op. y Admin" },
+  { value: "suministros_oficina",    label: "Suministros oficina",     area: "Gastos Op. y Admin" },
+  // Remuneraciones
+  { value: "sueldos",                label: "Sueldos",                 area: "Remuneraciones" },
+  { value: "prevision_salud",        label: "Prevision salud",         area: "Remuneraciones" },
+  { value: "honorarios",             label: "Honorarios",              area: "Remuneraciones" },
+  // Depreciacion
+  { value: "depreciacion_equipos",   label: "Depreciacion equipos",    area: "Depreciacion" },
+  { value: "depreciacion_vehiculos", label: "Depreciacion vehiculos",  area: "Depreciacion" },
+];
+
+// Sobreescribe CONDICION_PAGO_OPTIONS con tipo canonico
+export const CONDICION_PAGO_OPTIONS_TYPED: { value: CondicionPago; label: string }[] = [
+  { value: "contado",                    label: "Contado" },
+  { value: "contra_factura",             label: "Contra factura" },
+  { value: "contra_entrega",             label: "Contra entrega" },
+  { value: "credito_7",                  label: "Credito 7 dias" },
+  { value: "credito_15",                 label: "Credito 15 dias" },
+  { value: "credito_30",                 label: "Credito 30 dias" },
+  { value: "credito_60",                 label: "Credito 60 dias" },
+  { value: "credito_90",                 label: "Credito 90 dias" },
+  { value: "anticipo_50_factura",        label: "Anticipo 50% + factura" },
+  { value: "anticipo_50_entrega",        label: "Anticipo 50% + entrega" },
+  { value: "contra_boleta_honorarios",   label: "Pago contra boleta de honorarios" },
 ];
 
 export const EMPRESA = {

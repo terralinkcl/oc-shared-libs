@@ -1,11 +1,11 @@
 {
   "name": "oc-shared-libs",
-  "version": "1.0.0",
-  "description": "Libreria compartida de componentes PDF para Ordenes de Compra Terralink",
+  "version": "2.0.0",
+  "description": "Libreria compartida de tipos, constantes y componentes PDF para Ordenes de Compra Terralink",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist", "canonical"],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --external react --external @react-pdf/renderer",
     "dev": "tsup src/index.ts --format cjs,esm --dts --external react --external @react-pdf/renderer --watch",
