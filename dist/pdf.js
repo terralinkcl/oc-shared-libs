@@ -17,25 +17,13 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/index.ts
-var src_exports = {};
-__export(src_exports, {
-  AGRUPACION_OPTIONS: () => AGRUPACION_OPTIONS,
-  CENTRO_NEGOCIO_OPTIONS: () => CENTRO_NEGOCIO_OPTIONS,
-  CONDICION_PAGO_OPTIONS: () => CONDICION_PAGO_OPTIONS,
-  CONDICION_PAGO_OPTIONS_TYPED: () => CONDICION_PAGO_OPTIONS_TYPED,
-  EMPRESA: () => EMPRESA,
-  ESTADOS_APROBADOS: () => ESTADOS_APROBADOS,
+// src/pdf/index.ts
+var pdf_exports = {};
+__export(pdf_exports, {
   GasolinaPdfDocument: () => GasolinaPdfDocument,
-  IMPTO_GASOLINA_POR_LITRO_DEFAULT: () => IMPTO_GASOLINA_POR_LITRO_DEFAULT,
-  IVA_RATE: () => IVA_RATE,
-  MONEDA_OPTIONS: () => MONEDA_OPTIONS,
-  OcPdfDocument: () => OcPdfDocument,
-  RETENCION_HONORARIOS_RATE: () => RETENCION_HONORARIOS_RATE,
-  TIPO_CREACION_OPTIONS: () => TIPO_CREACION_OPTIONS,
-  TIPO_DOCUMENTO_OPTIONS: () => TIPO_DOCUMENTO_OPTIONS
+  OcPdfDocument: () => OcPdfDocument
 });
-module.exports = __toCommonJS(src_exports);
+module.exports = __toCommonJS(pdf_exports);
 
 // src/pdf/OcPdfDocument.tsx
 var import_renderer = require("@react-pdf/renderer");
@@ -44,12 +32,6 @@ var import_renderer = require("@react-pdf/renderer");
 var IVA_RATE = 0.19;
 var RETENCION_HONORARIOS_RATE = 0.1525;
 var IMPTO_GASOLINA_POR_LITRO_DEFAULT = 404;
-var TIPO_DOCUMENTO_OPTIONS = [
-  { value: "factura_electronica", label: "Factura Compra Electronica" },
-  { value: "boleta_honorarios", label: "Boleta de Honorarios" },
-  { value: "factura_exenta", label: "Factura Compra Exenta Electronica" },
-  { value: "factura_gasolina", label: "Factura Gasolina (c/ Impto. Especifico)" }
-];
 var CONDICION_PAGO_OPTIONS = [
   { value: "contado", label: "Contado" },
   { value: "contra_factura", label: "Contra factura" },
@@ -72,72 +54,6 @@ var ESTADOS_APROBADOS = [
   "guia_despacho",
   "entregada_proyecto",
   "recepcionado_proyecto"
-];
-var CENTRO_NEGOCIO_OPTIONS = [
-  { value: "empresa", label: "Empresa" },
-  { value: "om", label: "O&M" },
-  { value: "proyectos", label: "Proyectos" }
-];
-var MONEDA_OPTIONS = [
-  { value: "clp", label: "Pesos (CLP)" },
-  { value: "uf", label: "UF" },
-  { value: "usd", label: "Dolares (USD)" },
-  { value: "eur", label: "Euros (EUR)" }
-];
-var TIPO_CREACION_OPTIONS = [
-  { value: "cubicacion", label: "Desde Cubicacion" },
-  { value: "rapida", label: "OC Rapida" },
-  { value: "adicional", label: "Adicional" },
-  { value: "template", label: "Desde Template" },
-  { value: "caja_chica", label: "Caja Chica" },
-  { value: "legacy", label: "Legado" }
-];
-var AGRUPACION_OPTIONS = [
-  // Costo Proyecto
-  { value: "equipos_principales", label: "Equipos principales", area: "Costo Proyecto" },
-  { value: "mano_de_obra", label: "Mano de obra", area: "Costo Proyecto" },
-  { value: "suministros", label: "Suministros", area: "Costo Proyecto" },
-  { value: "servicios", label: "Servicios", area: "Costo Proyecto" },
-  { value: "tramitaciones", label: "Tramitaciones", area: "Costo Proyecto" },
-  { value: "adicionales", label: "Adicionales", area: "Costo Proyecto" },
-  { value: "memoria_calculo", label: "Memoria de calculo", area: "Costo Proyecto" },
-  { value: "transporte", label: "Transporte", area: "Costo Proyecto" },
-  { value: "bodega", label: "Bodega", area: "Costo Proyecto" },
-  // Costo O&M
-  { value: "subcontratos", label: "Subcontratos", area: "Costo O&M" },
-  { value: "repuestos", label: "Repuestos", area: "Costo O&M" },
-  { value: "insumos_limpieza", label: "Insumos limpieza", area: "Costo O&M" },
-  { value: "herramientas", label: "Herramientas", area: "Costo O&M" },
-  // Gastos Op. y Admin
-  { value: "arriendo_oficina", label: "Arriendo oficina", area: "Gastos Op. y Admin" },
-  { value: "arriendo_vehiculo", label: "Arriendo vehiculo", area: "Gastos Op. y Admin" },
-  { value: "combustible", label: "Combustible", area: "Gastos Op. y Admin" },
-  { value: "comunicaciones", label: "Comunicaciones", area: "Gastos Op. y Admin" },
-  { value: "licencias_software", label: "Licencias software", area: "Gastos Op. y Admin" },
-  { value: "mantenimiento_vehiculos", label: "Mantenimiento vehiculos", area: "Gastos Op. y Admin" },
-  { value: "seguros", label: "Seguros", area: "Gastos Op. y Admin" },
-  { value: "servicios_profesionales", label: "Servicios profesionales", area: "Gastos Op. y Admin" },
-  { value: "suministros_oficina", label: "Suministros oficina", area: "Gastos Op. y Admin" },
-  // Remuneraciones
-  { value: "sueldos", label: "Sueldos", area: "Remuneraciones" },
-  { value: "prevision_salud", label: "Prevision salud", area: "Remuneraciones" },
-  { value: "honorarios", label: "Honorarios", area: "Remuneraciones" },
-  // Depreciacion
-  { value: "depreciacion_equipos", label: "Depreciacion equipos", area: "Depreciacion" },
-  { value: "depreciacion_vehiculos", label: "Depreciacion vehiculos", area: "Depreciacion" }
-];
-var CONDICION_PAGO_OPTIONS_TYPED = [
-  { value: "contado", label: "Contado" },
-  { value: "contra_factura", label: "Contra factura" },
-  { value: "contra_entrega", label: "Contra entrega" },
-  { value: "credito_7", label: "Credito 7 dias" },
-  { value: "credito_15", label: "Credito 15 dias" },
-  { value: "credito_30", label: "Credito 30 dias" },
-  { value: "credito_60", label: "Credito 60 dias" },
-  { value: "credito_90", label: "Credito 90 dias" },
-  { value: "anticipo_50_factura", label: "Anticipo 50% + factura" },
-  { value: "anticipo_50_entrega", label: "Anticipo 50% + entrega" },
-  { value: "contra_boleta_honorarios", label: "Pago contra boleta de honorarios" }
 ];
 var EMPRESA = {
   nombre: "TERRALINK SPA",
@@ -706,18 +622,6 @@ ${item.comentario}` : ""
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  AGRUPACION_OPTIONS,
-  CENTRO_NEGOCIO_OPTIONS,
-  CONDICION_PAGO_OPTIONS,
-  CONDICION_PAGO_OPTIONS_TYPED,
-  EMPRESA,
-  ESTADOS_APROBADOS,
   GasolinaPdfDocument,
-  IMPTO_GASOLINA_POR_LITRO_DEFAULT,
-  IVA_RATE,
-  MONEDA_OPTIONS,
-  OcPdfDocument,
-  RETENCION_HONORARIOS_RATE,
-  TIPO_CREACION_OPTIONS,
-  TIPO_DOCUMENTO_OPTIONS
+  OcPdfDocument
 });

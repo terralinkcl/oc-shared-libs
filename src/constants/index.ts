@@ -7,6 +7,22 @@ import type {
   CondicionPago,
 } from "../types";
 
+// Re-export de tipos canonicos para que los consumidores puedan importar
+// constantes y tipos en el mismo statement desde "oc-shared-libs/constants",
+// sin tener que jalar el barrel principal (que incluye @react-pdf/renderer).
+export type {
+  TipoDocumento,
+  TipoDocumentoExtendido,
+  CentroNegocio,
+  AgrupacionOC,
+  TipoCreacionOC,
+  MonedaOC,
+  CondicionPago,
+  EstadoOCOperacional,
+  EstadoOCFinanciero,
+  EstadoOC,
+} from "../types";
+
 export const IVA_RATE = 0.19;
 export const RETENCION_HONORARIOS_RATE = 0.1525;
 
