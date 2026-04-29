@@ -7,7 +7,7 @@ type AgrupacionOC = "mano_de_obra" | "suministros" | "servicios" | "equipos_prin
 type TipoCreacionOC = "cubicacion" | "template" | "rapida" | "adicional" | "caja_chica" | "legacy";
 type MonedaOC = "clp" | "uf" | "usd" | "eur";
 type CondicionPago = "contra_factura" | "contra_boleta_honorarios" | "contado" | "credito_7" | "credito_15" | "credito_30" | "credito_60" | "credito_90" | "contra_entrega" | "anticipo_50_factura" | "anticipo_50_entrega";
-type EstadoOCOperacional = "emitida" | "pendiente_aprobacion_tesoreria" | "aprobada" | "enviada_proveedor" | "en_transito" | "bodega_terralink" | "en_preparacion" | "guia_despacho" | "entregada_proyecto" | "recepcionado_proyecto" | "pendiente_anulacion" | "anulada" | "eliminada";
+type EstadoOCOperacional = "emitida" | "pendiente_segunda_aprobacion" | "pendiente_aprobacion_tesoreria" | "aprobada" | "rechazada" | "enviada_proveedor" | "en_transito" | "bodega_terralink" | "en_preparacion" | "guia_despacho" | "entregada_proyecto" | "recepcionado_proyecto" | "pendiente_anulacion" | "anulada" | "eliminada";
 type EstadoOCFinanciero = "borrador" | "pendiente_aprobacion" | "aprobada" | "activa" | "facturada" | "cerrada" | "rechazada" | "excedida" | "pendiente_anulacion" | "anulada" | "eliminada";
 type EstadoOC = EstadoOCOperacional;
 interface OcParaPdf {

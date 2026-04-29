@@ -68,7 +68,9 @@
     "guia_despacho",
     "pendiente_anulacion",
     "pendiente_aprobacion_tesoreria",
-    "recepcionado_proyecto"
+    "pendiente_segunda_aprobacion",
+    "recepcionado_proyecto",
+    "rechazada"
   ],
   "EstadoOCFinanciero": [
     "activa",

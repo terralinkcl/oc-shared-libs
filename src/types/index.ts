@@ -58,8 +58,10 @@ export type CondicionPago =
 // Estados operacionales/logisticos (usados en Abastecimiento)
 export type EstadoOCOperacional =
   | "emitida"
+  | "pendiente_segunda_aprobacion"
   | "pendiente_aprobacion_tesoreria"
   | "aprobada"
+  | "rechazada"
   | "enviada_proveedor"
   | "en_transito"
   | "bodega_terralink"
