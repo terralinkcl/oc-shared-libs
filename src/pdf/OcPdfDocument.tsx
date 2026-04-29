@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
-import type { OcParaPdf, OcItemParaPdf, ProveedorParaPdf } from "../types";
+import type { OcParaPdf, OcItemParaPdf, ProveedorParaPdf, MonedaOC } from "../types";
 import {
   IVA_RATE,
   RETENCION_HONORARIOS_RATE,
@@ -73,13 +73,45 @@ const s = StyleSheet.create({
   signatureLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 12 },
 });
 
-function fmt(n: number, moneda: "clp" | "uf" = "clp"): string {
-  if (moneda === "uf") return `UF ${n.toFixed(4)}`;
-  return `$ ${Math.round(n).toLocaleString("es-CL")}`;
+// Convencion de decimales por moneda:
+// - CLP: 0 (no se factura con decimales en Chile)
+// - UF: 2 (cotizacion oficial Banco Central)
+// - USD/EUR: 2 (estandar internacional)
+const DECIMALS_BY_MONEDA: Record<MonedaOC, number> = {
+  clp: 0,
+  uf: 2,
+  usd: 2,
+  eur: 2,
+};
+
+const SYMBOL_BY_MONEDA: Record<MonedaOC, string> = {
+  clp: "$",
+  uf: "UF",
+  usd: "US$",
+  eur: "€",
+};
+
+function fmtNum(n: number, moneda: MonedaOC): string {
+  const decimals = DECIMALS_BY_MONEDA[moneda];
+  return new Intl.NumberFormat("es-CL", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(n);
 }
 
-function zero(moneda: "clp" | "uf" = "clp"): string {
-  return moneda === "uf" ? "UF 0.0000" : "$ 0";
+function fmt(n: number, moneda: MonedaOC = "clp"): string {
+  return `${SYMBOL_BY_MONEDA[moneda]} ${fmtNum(n, moneda)}`;
+}
+
+function zero(moneda: MonedaOC = "clp"): string {
+  return fmt(0, moneda);
+}
+
+// Total final: para CLP redondea hacia arriba al peso entero (estandar
+// tributario chileno). Para UF/USD/EUR mantiene el calculo natural ya que
+// los decimales son significativos (UF flotuante, conversion FX).
+function ceilTotal(n: number, moneda: MonedaOC): number {
+  return moneda === "clp" ? Math.ceil(n) : n;
 }
 
 function fmtFecha(iso: string | null | undefined): string {
@@ -121,7 +153,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
     0
   );
   const neto = subtotal;
-  const moneda: "clp" | "uf" = oc.moneda ?? "clp";
+  const moneda: MonedaOC = oc.moneda ?? "clp";
 
   // Fallback para OCs antiguas sin tipo_documento
   const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
@@ -129,7 +161,8 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
   const esExenta = tipoDoc === "factura_exenta";
   const iva = (esBoleta || esExenta) ? 0 : Math.round(neto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
-  const total = esBoleta ? neto - retencion : neto + iva;
+  const totalRaw = esBoleta ? neto - retencion : neto + iva;
+  const total = ceilTotal(totalRaw, moneda);
 
   const folioNum = fmtFolio(oc);
   const centroNegocioDisplay = oc.centro_negocio_label || oc.proyecto_nombre.toUpperCase() || "GENERAL";
@@ -217,7 +250,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
             <View style={s.totalRow}><Text style={s.totalLabel}>Neto:</Text><Text style={s.totalValue}>{esExenta ? zero(moneda) : fmt(neto, moneda)}</Text></View>
             <View style={s.totalRow}><Text style={s.totalLabel}>Exento:</Text><Text style={s.totalValue}>{esExenta ? fmt(neto, moneda) : zero(moneda)}</Text></View>
             {esBoleta ? (
-              <View style={s.totalRow}><Text style={s.totalLabel}>IVA RETENIDO (15.25%):</Text><Text style={s.totalValue}>{moneda === "uf" ? `UF -${retencion.toFixed(4)}` : `$ -${retencion.toLocaleString("es-CL")}`}</Text></View>
+              <View style={s.totalRow}><Text style={s.totalLabel}>IVA RETENIDO (15.25%):</Text><Text style={s.totalValue}>{`${SYMBOL_BY_MONEDA[moneda]} -${fmtNum(retencion, moneda)}`}</Text></View>
             ) : esExenta ? (
               <View style={s.totalRow}><Text style={s.totalLabel}>IVA:</Text><Text style={s.totalValue}>{zero(moneda)}</Text></View>
             ) : (

@@ -41,7 +41,7 @@
     "nc_compra",
     "nd_compra"
   ],
-  "MonedaOC": ["clp", "uf"],
+  "MonedaOC": ["clp", "eur", "uf", "usd"],
   "CondicionPago": [
     "anticipo_50_entrega",
     "anticipo_50_factura",

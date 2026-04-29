@@ -41,7 +41,10 @@ export type TipoCreacionOC =
 
 // ── Moneda ────────────────────────────────────────────────────────────────────
 
-export type MonedaOC = "clp" | "uf";
+export type MonedaOC = "clp" | "uf" | "usd" | "eur";
+
+// Moneda por defecto al crear OCs nuevas. CLP es la moneda contable de Terralink.
+export const MONEDA_DEFAULT: MonedaOC = "clp";
 
 // ── Condicion de pago ─────────────────────────────────────────────────────────
 

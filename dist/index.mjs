@@ -49,7 +49,9 @@ var CENTRO_NEGOCIO_OPTIONS = [
 ];
 var MONEDA_OPTIONS = [
   { value: "clp", label: "Pesos (CLP)" },
-  { value: "uf", label: "UF" }
+  { value: "uf", label: "UF" },
+  { value: "usd", label: "Dolares (USD)" },
+  { value: "eur", label: "Euros (EUR)" }
 ];
 var TIPO_CREACION_OPTIONS = [
   { value: "cubicacion", label: "Desde Cubicacion" },
@@ -171,12 +173,33 @@ var s = StyleSheet.create({
   signatureRight: { flex: 1 },
   signatureLabel: { fontSize: 8, fontWeight: "bold", marginBottom: 12 }
 });
+var DECIMALS_BY_MONEDA = {
+  clp: 0,
+  uf: 2,
+  usd: 2,
+  eur: 2
+};
+var SYMBOL_BY_MONEDA = {
+  clp: "$",
+  uf: "UF",
+  usd: "US$",
+  eur: "\u20AC"
+};
+function fmtNum(n, moneda) {
+  const decimals = DECIMALS_BY_MONEDA[moneda];
+  return new Intl.NumberFormat("es-CL", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(n);
+}
 function fmt(n, moneda = "clp") {
-  if (moneda === "uf") return `UF ${n.toFixed(4)}`;
-  return `$ ${Math.round(n).toLocaleString("es-CL")}`;
+  return `${SYMBOL_BY_MONEDA[moneda]} ${fmtNum(n, moneda)}`;
 }
 function zero(moneda = "clp") {
-  return moneda === "uf" ? "UF 0.0000" : "$ 0";
+  return fmt(0, moneda);
+}
+function ceilTotal(n, moneda) {
+  return moneda === "clp" ? Math.ceil(n) : n;
 }
 function fmtFecha(iso) {
   if (!iso) return "--";
@@ -212,7 +235,8 @@ function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
   const esExenta = tipoDoc === "factura_exenta";
   const iva = esBoleta || esExenta ? 0 : Math.round(neto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
-  const total = esBoleta ? neto - retencion : neto + iva;
+  const totalRaw = esBoleta ? neto - retencion : neto + iva;
+  const total = ceilTotal(totalRaw, moneda);
   const folioNum = fmtFolio(oc);
   const centroNegocioDisplay = oc.centro_negocio_label || oc.proyecto_nombre.toUpperCase() || "GENERAL";
   const { label: estadoLabel, color: estadoColor } = resolverEstadoLabel(oc.estado);
@@ -347,7 +371,7 @@ ${item.comentario}` : ""
         ] }),
         esBoleta ? /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
           /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "IVA RETENIDO (15.25%):" }),
-          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: moneda === "uf" ? `UF -${retencion.toFixed(4)}` : `$ -${retencion.toLocaleString("es-CL")}` })
+          /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: `${SYMBOL_BY_MONEDA[moneda]} -${fmtNum(retencion, moneda)}` })
         ] }) : esExenta ? /* @__PURE__ */ jsxs(View, { style: s.totalRow, children: [
           /* @__PURE__ */ jsx(Text, { style: s.totalLabel, children: "IVA:" }),
           /* @__PURE__ */ jsx(Text, { style: s.totalValue, children: zero(moneda) })

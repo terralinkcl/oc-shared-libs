@@ -58,6 +58,8 @@ export const CENTRO_NEGOCIO_OPTIONS: { value: CentroNegocio; label: string }[] =
 export const MONEDA_OPTIONS: { value: MonedaOC; label: string }[] = [
   { value: "clp", label: "Pesos (CLP)" },
   { value: "uf", label: "UF" },
+  { value: "usd", label: "Dolares (USD)" },
+  { value: "eur", label: "Euros (EUR)" },
 ];
 
 export const TIPO_CREACION_OPTIONS: { value: TipoCreacionOC; label: string }[] = [

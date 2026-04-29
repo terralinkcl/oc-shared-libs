@@ -1,6 +1,6 @@
 {
   "name": "oc-shared-libs",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Libreria compartida de tipos, constantes y componentes PDF para Ordenes de Compra Terralink",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
