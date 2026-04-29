@@ -133,10 +133,38 @@ function fmtCondicionPago(value: string | null | undefined): string {
   return CONDICION_PAGO_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
 
+// Estados que se renderizan como "Pendiente" (naranja) en el badge.
+// Cubre tanto el flujo operacional de Abastecimiento (emitida, pendiente_*)
+// como el flujo financiero de Tesoreria (borrador, pendiente_aprobacion).
+const ESTADOS_PENDIENTES = [
+  "borrador",
+  "emitida",
+  "pendiente_aprobacion",
+  "pendiente_segunda_aprobacion",
+  "pendiente_aprobacion_tesoreria",
+];
+
+// Estados que se consideran "Anulada" (rojo). Incluye el estado intermedio
+// pendiente_anulacion para que se vea anulada visualmente apenas se solicita.
+const ESTADOS_ANULADOS = ["pendiente_anulacion", "anulacion_solicitada", "anulada"];
+
+// Estados financieros que extienden el flujo aprobado (post-aprobacion).
+// ESTADOS_APROBADOS canonico solo cubre el flujo operacional de Abast.
+const ESTADOS_APROBADOS_FINANCIEROS = [
+  "activa",
+  "facturada",
+  "pagada",
+  "excedida",
+  "cerrada",
+];
+
 function resolverEstadoLabel(estado: string): { label: string; color: string } {
-  if (estado === "emitida") return { label: "Pendiente", color: "#d97706" };
-  if (ESTADOS_APROBADOS.includes(estado)) return { label: "Aprobada", color: "#16a34a" };
-  if (estado === "eliminada") return { label: "Eliminada", color: "#dc2626" };
+  if (ESTADOS_PENDIENTES.includes(estado)) return { label: "Pendiente", color: "#d97706" };
+  if (ESTADOS_APROBADOS.includes(estado) || ESTADOS_APROBADOS_FINANCIEROS.includes(estado)) {
+    return { label: "Aprobada", color: "#16a34a" };
+  }
+  if (ESTADOS_ANULADOS.includes(estado)) return { label: "Anulada", color: "#dc2626" };
+  if (estado === "eliminada") return { label: "Eliminada", color: "#6b7280" };
   return { label: "Rechazada", color: "#dc2626" };
 }
 

@@ -248,10 +248,28 @@ function fmtCondicionPago(value) {
   if (!value) return "--";
   return CONDICION_PAGO_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
+var ESTADOS_PENDIENTES = [
+  "borrador",
+  "emitida",
+  "pendiente_aprobacion",
+  "pendiente_segunda_aprobacion",
+  "pendiente_aprobacion_tesoreria"
+];
+var ESTADOS_ANULADOS = ["pendiente_anulacion", "anulacion_solicitada", "anulada"];
+var ESTADOS_APROBADOS_FINANCIEROS = [
+  "activa",
+  "facturada",
+  "pagada",
+  "excedida",
+  "cerrada"
+];
 function resolverEstadoLabel(estado) {
-  if (estado === "emitida") return { label: "Pendiente", color: "#d97706" };
-  if (ESTADOS_APROBADOS.includes(estado)) return { label: "Aprobada", color: "#16a34a" };
-  if (estado === "eliminada") return { label: "Eliminada", color: "#dc2626" };
+  if (ESTADOS_PENDIENTES.includes(estado)) return { label: "Pendiente", color: "#d97706" };
+  if (ESTADOS_APROBADOS.includes(estado) || ESTADOS_APROBADOS_FINANCIEROS.includes(estado)) {
+    return { label: "Aprobada", color: "#16a34a" };
+  }
+  if (ESTADOS_ANULADOS.includes(estado)) return { label: "Anulada", color: "#dc2626" };
+  if (estado === "eliminada") return { label: "Eliminada", color: "#6b7280" };
   return { label: "Rechazada", color: "#dc2626" };
 }
 function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
