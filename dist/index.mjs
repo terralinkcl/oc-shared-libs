@@ -1,7 +1,7 @@
 import {
   GasolinaPdfDocument,
   OcPdfDocument
-} from "./chunk-AKW7NSTU.mjs";
+} from "./chunk-K4ZVFRQF.mjs";
 import {
   AGRUPACION_OPTIONS,
   CENTRO_NEGOCIO_OPTIONS,
@@ -15,7 +15,7 @@ import {
   RETENCION_HONORARIOS_RATE,
   TIPO_CREACION_OPTIONS,
   TIPO_DOCUMENTO_OPTIONS
-} from "./chunk-UDBOEGAO.mjs";
+} from "./chunk-5CJX223V.mjs";
 export {
   AGRUPACION_OPTIONS,
   CENTRO_NEGOCIO_OPTIONS,

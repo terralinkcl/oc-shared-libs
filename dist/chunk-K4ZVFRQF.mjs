@@ -5,7 +5,7 @@ import {
   IMPTO_GASOLINA_POR_LITRO_DEFAULT,
   IVA_RATE,
   RETENCION_HONORARIOS_RATE
-} from "./chunk-UDBOEGAO.mjs";
+} from "./chunk-5CJX223V.mjs";
 
 // src/pdf/OcPdfDocument.tsx
 import {

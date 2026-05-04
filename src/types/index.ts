@@ -27,8 +27,8 @@ export type AgrupacionOC =
   | "subcontratos" | "repuestos" | "insumos_limpieza" | "herramientas"
   // Gastos Op. y Admin
   | "arriendo_oficina" | "arriendo_vehiculo" | "combustible" | "comunicaciones"
-  | "licencias_software" | "mantenimiento_vehiculos" | "seguros"
-  | "servicios_profesionales" | "suministros_oficina"
+  | "gastos_basicos" | "licencias_software" | "mantenimiento_vehiculos"
+  | "pago_autopistas" | "seguros" | "servicios_profesionales" | "suministros_oficina"
   // Remuneraciones
   | "sueldos" | "prevision_salud" | "honorarios"
   // Depreciacion
