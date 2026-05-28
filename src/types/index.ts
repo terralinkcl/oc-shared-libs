@@ -28,7 +28,7 @@ export type AgrupacionOC =
   // Gastos Op. y Admin
   | "arriendo_oficina" | "arriendo_vehiculo" | "combustible" | "comunicaciones"
   | "gastos_basicos" | "licencias_software" | "mantenimiento_vehiculos"
-  | "pago_autopistas" | "seguros" | "servicios_profesionales" | "suministros_oficina"
+  | "pago_autopistas" | "remarcacion" | "seguros" | "servicios_profesionales" | "suministros_oficina"
   // Remuneraciones
   | "sueldos" | "prevision_salud" | "honorarios"
   // Depreciacion

@@ -1,5 +1,5 @@
-import { A as AgrupacionOC, C as CentroNegocio, a as CondicionPago, M as MonedaOC, T as TipoCreacionOC, f as TipoDocumento } from './index-ckiepJb6.mjs';
-export { E as EstadoOC, b as EstadoOCFinanciero, c as EstadoOCOperacional, g as TipoDocumentoExtendido } from './index-ckiepJb6.mjs';
+import { A as AgrupacionOC, C as CentroNegocio, a as CondicionPago, M as MonedaOC, T as TipoCreacionOC, f as TipoDocumento } from './index-52C5YZUA.mjs';
+export { E as EstadoOC, b as EstadoOCFinanciero, c as EstadoOCOperacional, g as TipoDocumentoExtendido } from './index-52C5YZUA.mjs';
 
 declare const IVA_RATE = 0.19;
 declare const RETENCION_HONORARIOS_RATE = 0.1525;

@@ -117,6 +117,7 @@ var AGRUPACION_OPTIONS = [
   { value: "licencias_software", label: "Licencias software", area: "Gastos Op. y Admin" },
   { value: "mantenimiento_vehiculos", label: "Mantenimiento vehiculos", area: "Gastos Op. y Admin" },
   { value: "pago_autopistas", label: "Pago de autopistas", area: "Gastos Op. y Admin" },
+  { value: "remarcacion", label: "Remarcaci\xF3n", area: "Gastos Op. y Admin" },
   { value: "seguros", label: "Seguros", area: "Gastos Op. y Admin" },
   { value: "servicios_profesionales", label: "Servicios profesionales", area: "Gastos Op. y Admin" },
   { value: "suministros_oficina", label: "Suministros oficina", area: "Gastos Op. y Admin" },
