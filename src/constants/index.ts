@@ -113,9 +113,11 @@ export const AGRUPACION_OPTIONS: { value: AgrupacionOC; label: string; area: str
   { value: "mantenimiento_vehiculos",label: "Mantenimiento vehiculos", area: "Gastos Op. y Admin" },
   { value: "pago_autopistas",        label: "Pago de autopistas",      area: "Gastos Op. y Admin" },
   { value: "remarcacion",            label: "Remarcación",             area: "Gastos Op. y Admin" },
+  { value: "salida_negocios",        label: "Salida de Negocios",      area: "Gastos Op. y Admin" },
   { value: "seguros",                label: "Seguros",                 area: "Gastos Op. y Admin" },
   { value: "servicios_profesionales",label: "Servicios profesionales", area: "Gastos Op. y Admin" },
   { value: "suministros_oficina",    label: "Suministros oficina",     area: "Gastos Op. y Admin" },
+  { value: "viaje_visita_tecnica",   label: "Viaje Visita Técnica",    area: "Gastos Op. y Admin" },
   // Remuneraciones
   { value: "sueldos",                label: "Sueldos",                 area: "Remuneraciones" },
   { value: "prevision_salud",        label: "Prevision salud",         area: "Remuneraciones" },
