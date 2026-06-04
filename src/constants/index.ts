@@ -108,6 +108,7 @@ export const AGRUPACION_OPTIONS: { value: AgrupacionOC; label: string; area: str
   { value: "arriendo_vehiculo",      label: "Arriendo vehiculo",       area: "Gastos Op. y Admin" },
   { value: "combustible",            label: "Combustible",             area: "Gastos Op. y Admin" },
   { value: "comunicaciones",         label: "Comunicaciones",          area: "Gastos Op. y Admin" },
+  { value: "gastos_bancarios",       label: "Gasto Bancario",          area: "Gastos Op. y Admin" },
   { value: "gastos_basicos",         label: "Gastos basicos",          area: "Gastos Op. y Admin" },
   { value: "licencias_software",     label: "Licencias software",      area: "Gastos Op. y Admin" },
   { value: "mantenimiento_vehiculos",label: "Mantenimiento vehiculos", area: "Gastos Op. y Admin" },
