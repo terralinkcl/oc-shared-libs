@@ -176,10 +176,8 @@ export interface OcPdfDocumentProps {
 }
 
 export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumentProps) {
-  const subtotal = items.reduce(
-    (sum, i) => sum + (i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida),
-    0
-  );
+  const lineNeto = (i: OcItemParaPdf) => i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida;
+  const subtotal = items.reduce((sum, i) => sum + lineNeto(i), 0);
   const neto = subtotal;
   const moneda: MonedaOC = oc.moneda ?? "clp";
 
@@ -187,9 +185,19 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
   const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
   const esBoleta = tipoDoc === "boleta_honorarios";
   const esExenta = tipoDoc === "factura_exenta";
-  const iva = (esBoleta || esExenta) ? 0 : Math.round(neto * IVA_RATE);
+
+  // Desglose afecto/exento. En factura electronica el IVA solo aplica a los
+  // items afectos (afecto_iva !== false); puede haber lineas exentas mezcladas.
+  // En factura exenta todo es exento; en boleta/gasolina no hay desglose mixto.
+  const netoExento = esExenta
+    ? neto
+    : tipoDoc === "factura_electronica"
+      ? items.reduce((sum, i) => sum + (i.afecto_iva === false ? lineNeto(i) : 0), 0)
+      : 0;
+  const netoAfecto = neto - netoExento;
+  const iva = (esBoleta || esExenta) ? 0 : Math.round(netoAfecto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
-  const totalRaw = esBoleta ? neto - retencion : neto + iva;
+  const totalRaw = esBoleta ? neto - retencion : netoAfecto + netoExento + iva;
   const total = ceilTotal(totalRaw, moneda);
 
   const folioNum = fmtFolio(oc);
@@ -255,7 +263,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
                   {item.catalogo_general_id ?? (item.material_id != null && item.material_id > 0 ? String(item.material_id) : "")}
                 </Text>
                 <Text style={[s.tdText, s.colDescripcion]}>
-                  {item.descripcion_snap}{item.comentario ? `\n${item.comentario}` : ""}
+                  {item.descripcion_snap}{tipoDoc === "factura_electronica" && item.afecto_iva === false ? " (EXENTO)" : ""}{item.comentario ? `\n${item.comentario}` : ""}
                 </Text>
                 <Text style={[s.tdText, s.colCantidad]}>{item.cantidad_pedida} {item.unidad_snap ?? "UN"}</Text>
                 <Text style={[s.tdText, s.colPrecio]}>{item.precio_unitario != null ? fmt(item.precio_unitario, moneda) : "--"}</Text>
@@ -275,12 +283,10 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
           <View style={s.totalsBox}>
             <View style={s.totalRow}><Text style={s.totalLabel}>SubTotal:</Text><Text style={s.totalValue}>{fmt(subtotal, moneda)}</Text></View>
             <View style={s.totalRow}><Text style={s.totalLabel}>Desc/Rec:</Text><Text style={s.totalValue}>{zero(moneda)}</Text></View>
-            <View style={s.totalRow}><Text style={s.totalLabel}>Neto:</Text><Text style={s.totalValue}>{esExenta ? zero(moneda) : fmt(neto, moneda)}</Text></View>
-            <View style={s.totalRow}><Text style={s.totalLabel}>Exento:</Text><Text style={s.totalValue}>{esExenta ? fmt(neto, moneda) : zero(moneda)}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>Neto Afecto:</Text><Text style={s.totalValue}>{fmt(netoAfecto, moneda)}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>Exento:</Text><Text style={s.totalValue}>{fmt(netoExento, moneda)}</Text></View>
             {esBoleta ? (
               <View style={s.totalRow}><Text style={s.totalLabel}>IVA RETENIDO (15.25%):</Text><Text style={s.totalValue}>{`${SYMBOL_BY_MONEDA[moneda]} -${fmtNum(retencion, moneda)}`}</Text></View>
-            ) : esExenta ? (
-              <View style={s.totalRow}><Text style={s.totalLabel}>IVA:</Text><Text style={s.totalValue}>{zero(moneda)}</Text></View>
             ) : (
               <View style={s.totalRow}><Text style={s.totalLabel}>IVA (19%):</Text><Text style={s.totalValue}>{fmt(iva, moneda)}</Text></View>
             )}

@@ -279,18 +279,18 @@ function resolverEstadoLabel(estado) {
   return { label: "Rechazada", color: "#dc2626" };
 }
 function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
-  const subtotal = items.reduce(
-    (sum, i) => sum + (i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida),
-    0
-  );
+  const lineNeto = (i) => i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida;
+  const subtotal = items.reduce((sum, i) => sum + lineNeto(i), 0);
   const neto = subtotal;
   const moneda = oc.moneda ?? "clp";
   const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
   const esBoleta = tipoDoc === "boleta_honorarios";
   const esExenta = tipoDoc === "factura_exenta";
-  const iva = esBoleta || esExenta ? 0 : Math.round(neto * IVA_RATE);
+  const netoExento = esExenta ? neto : tipoDoc === "factura_electronica" ? items.reduce((sum, i) => sum + (i.afecto_iva === false ? lineNeto(i) : 0), 0) : 0;
+  const netoAfecto = neto - netoExento;
+  const iva = esBoleta || esExenta ? 0 : Math.round(netoAfecto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
-  const totalRaw = esBoleta ? neto - retencion : neto + iva;
+  const totalRaw = esBoleta ? neto - retencion : netoAfecto + netoExento + iva;
   const total = ceilTotal(totalRaw, moneda);
   const folioNum = fmtFolio(oc);
   const centroNegocioDisplay = oc.centro_negocio_label || oc.proyecto_nombre.toUpperCase() || "GENERAL";
@@ -388,6 +388,7 @@ function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colCodigo], children: item.catalogo_general_id ?? (item.material_id != null && item.material_id > 0 ? String(item.material_id) : "") }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.Text, { style: [s.tdText, s.colDescripcion], children: [
             item.descripcion_snap,
+            tipoDoc === "factura_electronica" && item.afecto_iva === false ? " (EXENTO)" : "",
             item.comentario ? `
 ${item.comentario}` : ""
           ] }),
@@ -417,19 +418,16 @@ ${item.comentario}` : ""
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: zero(moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Neto:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: esExenta ? zero(moneda) : fmt(neto, moneda) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Neto Afecto:" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(netoAfecto, moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Exento:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: esExenta ? fmt(neto, moneda) : zero(moneda) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(netoExento, moneda) })
         ] }),
         esBoleta ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA RETENIDO (15.25%):" }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: `${SYMBOL_BY_MONEDA[moneda]} -${fmtNum(retencion, moneda)}` })
-        ] }) : esExenta ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: zero(moneda) })
         ] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA (19%):" }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(iva, moneda) })

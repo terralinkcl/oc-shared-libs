@@ -125,6 +125,9 @@ export interface OcItemParaPdf {
   precio_unitario: number | null;
   precio_total: number | null;
   comentario: string | null;
+  // IVA por item: false = exento; true/undefined = afecto (default). Solo
+  // relevante en factura electronica (afecta con lineas exentas).
+  afecto_iva?: boolean;
 }
 
 // ── Proveedor ─────────────────────────────────────────────────────────────────
