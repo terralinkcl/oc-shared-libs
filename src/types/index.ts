@@ -108,6 +108,11 @@ export interface OcParaPdf {
   centro_negocio_label: string | null;
   comentario: string | null;
   notas: string | null;
+  // Impuesto especifico a los combustibles (IEC, "Impto. cod. 28" del SII), en
+  // CLP. Monto manual copiado de la factura de combustible. Se SUMA al total
+  // (despues del IVA, que solo aplica al neto). Null/0 en OCs que no son de
+  // combustible (la gran mayoria).
+  impuesto_especifico?: number | null;
   // Datos enriquecidos requeridos por el PDF
   proveedor_nombre: string;
   proyecto_nombre: string;

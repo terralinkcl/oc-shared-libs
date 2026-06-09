@@ -290,7 +290,8 @@ function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
   const netoAfecto = neto - netoExento;
   const iva = esBoleta || esExenta ? 0 : Math.round(netoAfecto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
-  const totalRaw = esBoleta ? neto - retencion : netoAfecto + netoExento + iva;
+  const imptoEspecifico = Math.round(oc.impuesto_especifico ?? 0);
+  const totalRaw = (esBoleta ? neto - retencion : netoAfecto + netoExento + iva) + imptoEspecifico;
   const total = ceilTotal(totalRaw, moneda);
   const folioNum = fmtFolio(oc);
   const centroNegocioDisplay = oc.centro_negocio_label || oc.proyecto_nombre.toUpperCase() || "GENERAL";
@@ -431,6 +432,10 @@ ${item.comentario}` : ""
         ] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "IVA (19%):" }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(iva, moneda) })
+        ] }),
+        imptoEspecifico > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Impto. especifico (cod. 28):" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: fmt(imptoEspecifico, moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.View, { style: s.totalSeparator }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [

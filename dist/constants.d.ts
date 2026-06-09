@@ -1,5 +1,5 @@
-import { A as AgrupacionOC, C as CentroNegocio, a as CondicionPago, M as MonedaOC, T as TipoCreacionOC, f as TipoDocumento } from './index-DYpa0dEF.js';
-export { E as EstadoOC, b as EstadoOCFinanciero, c as EstadoOCOperacional, g as TipoDocumentoExtendido } from './index-DYpa0dEF.js';
+import { A as AgrupacionOC, C as CentroNegocio, a as CondicionPago, M as MonedaOC, T as TipoCreacionOC, f as TipoDocumento } from './index-DHhAiS0a.js';
+export { E as EstadoOC, b as EstadoOCFinanciero, c as EstadoOCOperacional, g as TipoDocumentoExtendido } from './index-DHhAiS0a.js';
 
 declare const IVA_RATE = 0.19;
 declare const RETENCION_HONORARIOS_RATE = 0.1525;

@@ -197,7 +197,11 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
   const netoAfecto = neto - netoExento;
   const iva = (esBoleta || esExenta) ? 0 : Math.round(netoAfecto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
-  const totalRaw = esBoleta ? neto - retencion : netoAfecto + netoExento + iva;
+  // Impuesto especifico a los combustibles (cod. 28): monto manual en CLP que se
+  // SUMA al total en cualquier tipo de documento. El IVA se calcula solo sobre el
+  // neto, nunca sobre este impuesto.
+  const imptoEspecifico = Math.round(oc.impuesto_especifico ?? 0);
+  const totalRaw = (esBoleta ? neto - retencion : netoAfecto + netoExento + iva) + imptoEspecifico;
   const total = ceilTotal(totalRaw, moneda);
 
   const folioNum = fmtFolio(oc);
@@ -289,6 +293,9 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
               <View style={s.totalRow}><Text style={s.totalLabel}>IVA RETENIDO (15.25%):</Text><Text style={s.totalValue}>{`${SYMBOL_BY_MONEDA[moneda]} -${fmtNum(retencion, moneda)}`}</Text></View>
             ) : (
               <View style={s.totalRow}><Text style={s.totalLabel}>IVA (19%):</Text><Text style={s.totalValue}>{fmt(iva, moneda)}</Text></View>
+            )}
+            {imptoEspecifico > 0 && (
+              <View style={s.totalRow}><Text style={s.totalLabel}>Impto. especifico (cod. 28):</Text><Text style={s.totalValue}>{fmt(imptoEspecifico, moneda)}</Text></View>
             )}
             <View style={s.totalSeparator} />
             <View style={s.totalRow}>
