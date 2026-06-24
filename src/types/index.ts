@@ -30,6 +30,10 @@ export type AgrupacionOC =
   | "gastos_bancarios" | "gastos_basicos" | "licencias_software" | "mantenimiento_vehiculos"
   | "pago_autopistas" | "remarcacion" | "salida_negocios" | "seguros" | "servicios_profesionales"
   | "suministros_oficina" | "viaje_visita_tecnica"
+  // Gastos Op. y Admin - servicios basicos, conexion y oficina (v2.10.0)
+  | "protocolos_conexion" | "solicitud_conexion" | "internet" | "agua" | "luz"
+  | "telefonia_movil" | "cafeteria_agua_filtrada" | "articulos_aseo"
+  | "articulos_computacion" | "seguridad"
   // Remuneraciones
   | "sueldos" | "prevision_salud" | "honorarios"
   // Depreciacion
