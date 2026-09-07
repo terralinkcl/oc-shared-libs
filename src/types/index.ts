@@ -34,6 +34,8 @@ export type AgrupacionOC =
   | "protocolos_conexion" | "solicitud_conexion" | "internet" | "agua" | "luz"
   | "telefonia_movil" | "cafeteria_agua_filtrada" | "articulos_aseo"
   | "articulos_computacion" | "seguridad"
+  // Gastos Op. y Admin - importaciones (v2.11.0)
+  | "importaciones"
   // Remuneraciones
   | "sueldos" | "prevision_salud" | "honorarios"
   // Depreciacion

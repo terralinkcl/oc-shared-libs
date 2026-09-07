@@ -134,6 +134,7 @@ var AGRUPACION_OPTIONS = [
   { value: "articulos_aseo", label: "Art\xEDculos de aseo", area: "Gastos Op. y Admin" },
   { value: "articulos_computacion", label: "Art\xEDculos de computaci\xF3n", area: "Gastos Op. y Admin" },
   { value: "seguridad", label: "Seguridad", area: "Gastos Op. y Admin" },
+  { value: "importaciones", label: "Importaciones", area: "Gastos Op. y Admin" },
   // Remuneraciones
   { value: "sueldos", label: "Sueldos", area: "Remuneraciones" },
   { value: "prevision_salud", label: "Prevision salud", area: "Remuneraciones" },

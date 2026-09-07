@@ -129,6 +129,7 @@ export const AGRUPACION_OPTIONS: { value: AgrupacionOC; label: string; area: str
   { value: "articulos_aseo",         label: "Artículos de aseo",       area: "Gastos Op. y Admin" },
   { value: "articulos_computacion",  label: "Artículos de computación",area: "Gastos Op. y Admin" },
   { value: "seguridad",              label: "Seguridad",               area: "Gastos Op. y Admin" },
+  { value: "importaciones",          label: "Importaciones",           area: "Gastos Op. y Admin" },
   // Remuneraciones
   { value: "sueldos",                label: "Sueldos",                 area: "Remuneraciones" },
   { value: "prevision_salud",        label: "Prevision salud",         area: "Remuneraciones" },
