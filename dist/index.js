@@ -40,6 +40,12 @@ module.exports = __toCommonJS(src_exports);
 // src/pdf/OcPdfDocument.tsx
 var import_renderer = require("@react-pdf/renderer");
 
+// src/pdf/linea.ts
+function netoLinea(i) {
+  const bruto = i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida;
+  return bruto - (i.descuento ?? 0);
+}
+
 // src/constants/index.ts
 var IVA_RATE = 0.19;
 var RETENCION_HONORARIOS_RATE = 0.1525;
@@ -290,14 +296,14 @@ function resolverEstadoLabel(estado) {
   return { label: "Rechazada", color: "#dc2626" };
 }
 function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
-  const lineNeto = (i) => i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida;
-  const subtotal = items.reduce((sum, i) => sum + lineNeto(i), 0);
-  const neto = subtotal;
+  const descuentoTotal = items.reduce((sum, i) => sum + (i.descuento ?? 0), 0);
+  const neto = items.reduce((sum, i) => sum + netoLinea(i), 0);
+  const subtotal = neto + descuentoTotal;
   const moneda = oc.moneda ?? "clp";
   const tipoDoc = oc.tipo_documento ?? (oc.condicion_pago === "contra_boleta_honorarios" ? "boleta_honorarios" : "factura_electronica");
   const esBoleta = tipoDoc === "boleta_honorarios";
   const esExenta = tipoDoc === "factura_exenta";
-  const netoExento = esExenta ? neto : tipoDoc === "factura_electronica" ? items.reduce((sum, i) => sum + (i.afecto_iva === false ? lineNeto(i) : 0), 0) : 0;
+  const netoExento = esExenta ? neto : tipoDoc === "factura_electronica" ? items.reduce((sum, i) => sum + (i.afecto_iva === false ? netoLinea(i) : 0), 0) : 0;
   const netoAfecto = neto - netoExento;
   const iva = esBoleta || esExenta ? 0 : Math.round(netoAfecto * IVA_RATE);
   const retencion = esBoleta ? Math.round(neto * RETENCION_HONORARIOS_RATE) : 0;
@@ -395,7 +401,8 @@ function OcPdfDocument({ oc, items, proveedor, logoBase64 }) {
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.thText, s.colTotal], children: "TOTAL" })
       ] }),
       items.map((item) => {
-        const lineTotal = item.precio_total ?? (item.precio_unitario ?? 0) * item.cantidad_pedida;
+        const lineTotal = netoLinea(item);
+        const descuento = item.descuento ?? 0;
         return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.tableRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colCodigo], children: item.catalogo_general_id ?? (item.material_id != null && item.material_id > 0 ? String(item.material_id) : "") }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.Text, { style: [s.tdText, s.colDescripcion], children: [
@@ -410,7 +417,7 @@ ${item.comentario}` : ""
             item.unidad_snap ?? "UN"
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colPrecio], children: item.precio_unitario != null ? fmt(item.precio_unitario, moneda) : "--" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colDescuento] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colDescuento], children: descuento > 0 ? `-${fmt(descuento, moneda)}` : "" }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: [s.tdText, s.colTotal], children: lineTotal > 0 ? fmt(lineTotal, moneda) : "--" })
         ] }, item.id);
       })
@@ -427,7 +434,7 @@ ${item.comentario}` : ""
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Desc/Rec:" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: zero(moneda) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalValue, children: descuentoTotal > 0 ? `-${fmt(descuentoTotal, moneda)}` : zero(moneda) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_renderer.View, { style: s.totalRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_renderer.Text, { style: s.totalLabel, children: "Neto Afecto:" }),
@@ -553,10 +560,7 @@ function resolverEstadoLabel2(estado) {
   return { label: "Rechazada", color: "#dc2626" };
 }
 function GasolinaPdfDocument({ oc, items, proveedor, logoBase64 }) {
-  const neto = items.reduce(
-    (sum, i) => sum + (i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida),
-    0
-  );
+  const neto = items.reduce((sum, i) => sum + netoLinea(i), 0);
   const totalLitros = items.reduce((sum, i) => sum + i.cantidad_pedida, 0);
   const tasaPorLitro = oc.tasa_impto_especifico_por_litro ?? IMPTO_GASOLINA_POR_LITRO_DEFAULT;
   const iva = Math.round(neto * IVA_RATE);
@@ -653,7 +657,8 @@ function GasolinaPdfDocument({ oc, items, proveedor, logoBase64 }) {
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.thText, s2.colTotal], children: "NETO TOTAL" })
       ] }),
       items.map((item) => {
-        const lineTotal = item.precio_total ?? (item.precio_unitario ?? 0) * item.cantidad_pedida;
+        const lineTotal = netoLinea(item);
+        const descuento = item.descuento ?? 0;
         return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.View, { style: s2.tableRow, children: [
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colCodigo], children: item.catalogo_general_id ?? (item.material_id != null && item.material_id > 0 ? String(item.material_id) : "") }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_renderer2.Text, { style: [s2.tdText, s2.colDescripcion], children: [
@@ -666,7 +671,7 @@ ${item.comentario}` : ""
             " L"
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colPrecio], children: item.precio_unitario != null ? fmt2(item.precio_unitario) : "--" }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colDescuento] }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colDescuento], children: descuento > 0 ? `-${fmt2(descuento)}` : "" }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_renderer2.Text, { style: [s2.tdText, s2.colTotal], children: lineTotal > 0 ? fmt2(lineTotal) : "--" })
         ] }, item.id);
       })

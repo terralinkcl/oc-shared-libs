@@ -9,6 +9,7 @@ import {
   Font,
 } from "@react-pdf/renderer";
 import type { OcGasolinaParaPdf, OcItemParaPdf, ProveedorParaPdf } from "../types";
+import { netoLinea } from "./linea";
 import {
   IVA_RATE,
   CONDICION_PAGO_OPTIONS,
@@ -113,15 +114,12 @@ export interface GasolinaPdfDocumentProps {
 
 export function GasolinaPdfDocument({ oc, items, proveedor, logoBase64 }: GasolinaPdfDocumentProps) {
   // Calculo de totales gasolina:
-  // - Neto: suma de precio_total de cada item (precio neto por litro x litros)
+  // - Neto: suma del neto de cada item (precio neto por litro x litros, menos descuento)
   // - IVA: Neto x 19%
   // - Impto. Especifico: total_litros x tasa_por_litro (fija en CLP, base UTM mensual)
   // - Total: Neto + IVA + Impto. Especifico
 
-  const neto = items.reduce(
-    (sum, i) => sum + (i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida),
-    0
-  );
+  const neto = items.reduce((sum, i) => sum + netoLinea(i), 0);
   const totalLitros = items.reduce((sum, i) => sum + i.cantidad_pedida, 0);
 
   const tasaPorLitro = oc.tasa_impto_especifico_por_litro ?? IMPTO_GASOLINA_POR_LITRO_DEFAULT;
@@ -185,7 +183,8 @@ export function GasolinaPdfDocument({ oc, items, proveedor, logoBase64 }: Gasoli
             <Text style={[s.thText, s.colTotal]}>NETO TOTAL</Text>
           </View>
           {items.map((item) => {
-            const lineTotal = item.precio_total ?? (item.precio_unitario ?? 0) * item.cantidad_pedida;
+            const lineTotal = netoLinea(item);
+            const descuento = item.descuento ?? 0;
             return (
               <View key={item.id} style={s.tableRow}>
                 <Text style={[s.tdText, s.colCodigo]}>
@@ -196,7 +195,7 @@ export function GasolinaPdfDocument({ oc, items, proveedor, logoBase64 }: Gasoli
                 </Text>
                 <Text style={[s.tdText, s.colCantidad]}>{item.cantidad_pedida} L</Text>
                 <Text style={[s.tdText, s.colPrecio]}>{item.precio_unitario != null ? fmt(item.precio_unitario) : "--"}</Text>
-                <Text style={[s.tdText, s.colDescuento]}></Text>
+                <Text style={[s.tdText, s.colDescuento]}>{descuento > 0 ? `-${fmt(descuento)}` : ""}</Text>
                 <Text style={[s.tdText, s.colTotal]}>{lineTotal > 0 ? fmt(lineTotal) : "--"}</Text>
               </View>
             );

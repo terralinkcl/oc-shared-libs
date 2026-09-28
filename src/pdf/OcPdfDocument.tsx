@@ -9,6 +9,7 @@ import {
   Font,
 } from "@react-pdf/renderer";
 import type { OcParaPdf, OcItemParaPdf, ProveedorParaPdf, MonedaOC } from "../types";
+import { netoLinea } from "./linea";
 import {
   IVA_RATE,
   RETENCION_HONORARIOS_RATE,
@@ -176,9 +177,11 @@ export interface OcPdfDocumentProps {
 }
 
 export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumentProps) {
-  const lineNeto = (i: OcItemParaPdf) => i.precio_total ?? (i.precio_unitario ?? 0) * i.cantidad_pedida;
-  const subtotal = items.reduce((sum, i) => sum + lineNeto(i), 0);
-  const neto = subtotal;
+  // SubTotal = suma bruta de las lineas; Desc/Rec = suma de sus descuentos;
+  // neto = SubTotal - Desc/Rec (base del IVA).
+  const descuentoTotal = items.reduce((sum, i) => sum + (i.descuento ?? 0), 0);
+  const neto = items.reduce((sum, i) => sum + netoLinea(i), 0);
+  const subtotal = neto + descuentoTotal;
   const moneda: MonedaOC = oc.moneda ?? "clp";
 
   // Fallback para OCs antiguas sin tipo_documento
@@ -192,7 +195,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
   const netoExento = esExenta
     ? neto
     : tipoDoc === "factura_electronica"
-      ? items.reduce((sum, i) => sum + (i.afecto_iva === false ? lineNeto(i) : 0), 0)
+      ? items.reduce((sum, i) => sum + (i.afecto_iva === false ? netoLinea(i) : 0), 0)
       : 0;
   const netoAfecto = neto - netoExento;
   const iva = (esBoleta || esExenta) ? 0 : Math.round(netoAfecto * IVA_RATE);
@@ -260,7 +263,8 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
             <Text style={[s.thText, s.colTotal]}>TOTAL</Text>
           </View>
           {items.map((item) => {
-            const lineTotal = item.precio_total ?? (item.precio_unitario ?? 0) * item.cantidad_pedida;
+            const lineTotal = netoLinea(item);
+            const descuento = item.descuento ?? 0;
             return (
               <View key={item.id} style={s.tableRow}>
                 <Text style={[s.tdText, s.colCodigo]}>
@@ -271,7 +275,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
                 </Text>
                 <Text style={[s.tdText, s.colCantidad]}>{item.cantidad_pedida} {item.unidad_snap ?? "UN"}</Text>
                 <Text style={[s.tdText, s.colPrecio]}>{item.precio_unitario != null ? fmt(item.precio_unitario, moneda) : "--"}</Text>
-                <Text style={[s.tdText, s.colDescuento]}></Text>
+                <Text style={[s.tdText, s.colDescuento]}>{descuento > 0 ? `-${fmt(descuento, moneda)}` : ""}</Text>
                 <Text style={[s.tdText, s.colTotal]}>{lineTotal > 0 ? fmt(lineTotal, moneda) : "--"}</Text>
               </View>
             );
@@ -286,7 +290,7 @@ export function OcPdfDocument({ oc, items, proveedor, logoBase64 }: OcPdfDocumen
           </View>
           <View style={s.totalsBox}>
             <View style={s.totalRow}><Text style={s.totalLabel}>SubTotal:</Text><Text style={s.totalValue}>{fmt(subtotal, moneda)}</Text></View>
-            <View style={s.totalRow}><Text style={s.totalLabel}>Desc/Rec:</Text><Text style={s.totalValue}>{zero(moneda)}</Text></View>
+            <View style={s.totalRow}><Text style={s.totalLabel}>Desc/Rec:</Text><Text style={s.totalValue}>{descuentoTotal > 0 ? `-${fmt(descuentoTotal, moneda)}` : zero(moneda)}</Text></View>
             <View style={s.totalRow}><Text style={s.totalLabel}>Neto Afecto:</Text><Text style={s.totalValue}>{fmt(netoAfecto, moneda)}</Text></View>
             <View style={s.totalRow}><Text style={s.totalLabel}>Exento:</Text><Text style={s.totalValue}>{fmt(netoExento, moneda)}</Text></View>
             {esBoleta ? (

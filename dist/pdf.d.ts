@@ -1,5 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
-import { e as OcParaPdf, d as OcItemParaPdf, P as ProveedorParaPdf, O as OcGasolinaParaPdf } from './index-DiulVEGP.js';
+import { e as OcParaPdf, d as OcItemParaPdf, P as ProveedorParaPdf, O as OcGasolinaParaPdf } from './index-DgR0k9e4.js';
 
 interface OcPdfDocumentProps {
     oc: OcParaPdf;

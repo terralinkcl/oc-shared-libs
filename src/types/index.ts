@@ -134,7 +134,13 @@ export interface OcItemParaPdf {
   unidad_snap: string | null;
   cantidad_pedida: number;
   precio_unitario: number | null;
+  // Total BRUTO de la linea (precio x cantidad, antes de descuento). Si viene
+  // null se calcula como precio_unitario x cantidad_pedida.
   precio_total: number | null;
+  // Descuento de la linea en monto absoluto (misma moneda que el precio). Se
+  // resta del bruto para el total de la linea y del documento. Quien ya pasa un
+  // precio_total neto de descuento debe omitirlo (o mandarlo en 0).
+  descuento?: number | null;
   comentario: string | null;
   // IVA por item: false = exento; true/undefined = afecto (default). Solo
   // relevante en factura electronica (afecta con lineas exentas).
